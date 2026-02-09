@@ -99,14 +99,7 @@ PageTurner is a comprehensive online bookstore management system built with Lara
   - Manage reviews
 
 #### Customer Accounts
-Multiple customer accounts are seeded with the following pattern:
-- **Email**: customer{1-10}@example.com
-- **Password**: password
-- **Access**: Customer privileges including:
-  - Browse books and categories
-  - Place orders
-  - Write reviews
-  - View order history
+Register to Login
 
 ### Database Schema
 
