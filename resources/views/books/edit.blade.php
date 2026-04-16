@@ -46,6 +46,11 @@
                     <input type="text" name="isbn" id="isbn" value="{{ old('isbn', $book->isbn) }}" 
                         class="w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-darkgreen focus:border-brand-darkgreen" required>
                 </div>
+                <div>
+                    <label for="price" class="block text-gray-700 font-medium mb-2">Price (₱) *</label>
+                    <input type="number" step="0.01" name="price" id="price" value="{{ old('price', $book->price) }}" 
+                        class="w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-darkgreen focus:border-brand-darkgreen" required>
+                </div>
             </div>
 
             <div class="mb-4">
@@ -81,6 +86,24 @@
                 </button>
             </div>
         </form>
+        
+        @if(auth()->user() && auth()->user()->isAdmin())
+            <div class="mt-6 border-t pt-4">
+                <h3 class="text-lg font-semibold mb-3">Stock management</h3>
+
+                <form action="{{ route('books.outOfStock', $book) }}" method="POST" class="inline-block">
+                    @csrf
+                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Mark Out of Stock</button>
+                </form>
+
+                <form action="{{ route('books.restock', $book) }}" method="POST" class="inline-block ml-4">
+                    @csrf
+                    <label for="restock_quantity" class="sr-only">Quantity</label>
+                    <input type="number" name="stock_quantity" id="restock_quantity" value="{{ old('stock_quantity', $book->stock_quantity) }}" min="0" class="w-24 border-gray-300 rounded-md shadow-sm focus:ring-brand-darkgreen focus:border-brand-darkgreen inline-block">
+                    <button type="submit" class="ml-2 bg-brand-darkgreen text-white px-4 py-2 rounded hover:bg-brand-amber hover:text-brand-darkgreen transition">Restock</button>
+                </form>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

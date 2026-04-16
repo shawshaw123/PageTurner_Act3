@@ -9,7 +9,7 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_id', 'book_id', 'quantity', 'unit_price'];
+    protected $fillable = ['order_id', 'book_id', 'quantity', 'price'];
 
     public function order()
     {
@@ -24,6 +24,6 @@ class OrderItem extends Model
     // Accessor for subtotal
     public function getSubtotalAttribute()
     {
-        return $this->quantity * $this->unit_price;
+        return $this->quantity * $this->price;
     }
 }

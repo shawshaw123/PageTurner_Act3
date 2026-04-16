@@ -126,10 +126,7 @@ A comprehensive Laravel-based online bookstore management system developed for I
 
 The application includes comprehensive seeders that create:
 - 1 Admin user (admin@pageturner.com)
-- 10 Customer users
-- 8 Book categories
-- 40 Books (5 per category)
-- Customer reviews for various books
+
 
 ## Security Features
 

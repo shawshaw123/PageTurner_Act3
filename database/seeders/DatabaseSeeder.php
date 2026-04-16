@@ -12,11 +12,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create admin user
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@pageturner.com',
-            'role' => 'admin',
+        $this->call([
+            AdminSeeder::class,
+            BookDataSeeder::class,
         ]);
 
         // Create customer users
@@ -28,9 +26,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'snoppy@example.com',
             'role' => 'customer',
         ]);
-
-        // Seed new book data provided by user
-        $this->call(BookDataSeeder::class);
 
         // Create reviews for the seeded books
         $books = Book::all();

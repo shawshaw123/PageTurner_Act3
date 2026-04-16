@@ -57,7 +57,7 @@
                                 {{ $item->quantity }}
                             </td>
                             <td class="px-4 py-4 text-right text-sm text-gray-500">
-                                ₱{{ number_format($item->unit_price, 2) }}
+                                ₱{{ number_format($item->price, 2) }}
                             </td>
                             <td class="px-4 py-4 text-right text-sm font-medium text-gray-900">
                                 ₱{{ number_format($item->subtotal, 2) }}
