@@ -43,7 +43,7 @@
                         </svg>
                     @endif
                 @endfor
-                <span class="ml-1 text-xs text-gray-500">({{ $book->reviews->count() }})</span>
+                <span class="ml-1 text-xs text-gray-500">({{ $book->reviews_count }})</span>
             </div>
         </div>
         

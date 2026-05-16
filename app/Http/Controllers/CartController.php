@@ -24,16 +24,28 @@ class CartController extends Controller
         $cartItems = [];
         $total = 0;
 
-        foreach ($cart as $bookId => $quantity) {
-            $book = Book::find($bookId);
-            if ($book && $book->stock_quantity >= $quantity) {
-                $subtotal = $book->price * $quantity;
-                $cartItems[] = [
-                    'book' => $book,
-                    'quantity' => $quantity,
-                    'subtotal' => $subtotal
-                ];
-                $total += $subtotal;
+        if (!empty($cart)) {
+            $bookIds = array_keys($cart);
+            $books = Book::with(['category:id,name'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
+                ->whereIn('id', $bookIds)
+                ->get()
+                ->keyBy('id');
+
+            foreach ($cart as $bookId => $quantity) {
+                if (isset($books[$bookId])) {
+                    $book = $books[$bookId];
+                    if ($book->stock_quantity >= $quantity) {
+                        $subtotal = $book->price * $quantity;
+                        $cartItems[] = [
+                            'book' => $book,
+                            'quantity' => $quantity,
+                            'subtotal' => $subtotal
+                        ];
+                        $total += $subtotal;
+                    }
+                }
             }
         }
 
@@ -142,10 +154,22 @@ class CartController extends Controller
         $cartItems = [];
         $total = 0;
 
+        $bookIds = array_keys($cart);
+        $books = Book::with(['category:id,name'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->whereIn('id', $bookIds)
+            ->get()
+            ->keyBy('id');
+
         // Validate stock and calculate total
         foreach ($cart as $bookId => $quantity) {
-            $book = Book::find($bookId);
-            if (!$book || $book->stock_quantity < $quantity) {
+            if (!isset($books[$bookId])) {
+                 continue;
+            }
+            
+            $book = $books[$bookId];
+            if ($book->stock_quantity < $quantity) {
                 return redirect()->route('cart.index')->with('error', 'Some items in your cart are no longer available. Please update your cart.');
             }
             
