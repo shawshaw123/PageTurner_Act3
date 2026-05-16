@@ -10,6 +10,8 @@ class HomeController extends Controller
     public function index()
     {
         $featuredBooks = Book::with('category')
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->orderBy('created_at', 'desc')
             ->take(8)
             ->get();

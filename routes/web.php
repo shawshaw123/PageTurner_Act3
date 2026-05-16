@@ -172,6 +172,16 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Lab 6 - User Data Portability Routes
+    Route::prefix('user')->group(function () {
+        Route::get('/data-portability', [\App\Http\Controllers\User\DataPortabilityController::class, 'index'])->name('user.data-portability.index');
+        Route::post('/export-personal-data', [\App\Http\Controllers\User\DataPortabilityController::class, 'exportPersonalData'])->name('user.data-portability.export-personal');
+        Route::post('/export-order-history', [\App\Http\Controllers\User\DataPortabilityController::class, 'exportOrderHistory'])->name('user.data-portability.export-orders');
+        Route::post('/export-reading-history', [\App\Http\Controllers\User\DataPortabilityController::class, 'exportReadingHistory'])->name('user.data-portability.export-reading');
+        Route::get('/data-portability/download/{export}', [\App\Http\Controllers\User\DataPortabilityController::class, 'download'])->name('user.data-portability.download');
+        Route::delete('/delete-account', [\App\Http\Controllers\User\DataPortabilityController::class, 'deleteAccount'])->name('user.data-portability.delete-account');
+    });
+
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
@@ -211,6 +221,68 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin', 'verified'])->group(function () {
     // Admin Dashboard
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Lab 6 - Data Management Routes
+    Route::prefix('admin')->group(function () {
+        // Import/Export Management
+        Route::get('/import', [\App\Http\Controllers\Admin\ImportController::class, 'index'])->name('admin.import.index');
+        Route::post('/import', [\App\Http\Controllers\Admin\ImportController::class, 'store'])->name('admin.import.store');
+        Route::get('/import/template/{type}', [\App\Http\Controllers\Admin\ImportController::class, 'downloadTemplate'])->name('admin.import.template');
+        Route::get('/import/{import}', [\App\Http\Controllers\Admin\ImportController::class, 'show'])->name('admin.import.show');
+        
+        Route::get('/export', [\App\Http\Controllers\Admin\ExportController::class, 'index'])->name('admin.export.index');
+        Route::post('/export', [\App\Http\Controllers\Admin\ExportController::class, 'store'])->name('admin.export.store');
+        Route::get('/export/download/{export}', [\App\Http\Controllers\Admin\ExportController::class, 'download'])->name('admin.export.download');
+        Route::get('/export/{export}', [\App\Http\Controllers\Admin\ExportController::class, 'show'])->name('admin.export.show');
+        Route::delete('/export/{export}', [\App\Http\Controllers\Admin\ExportController::class, 'destroy'])->name('admin.export.destroy');
+        
+        // Backup Management
+        Route::get('/backup', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('admin.backup.index');
+        Route::post('/backup', [\App\Http\Controllers\Admin\BackupController::class, 'store'])->name('admin.backup.store');
+        Route::get('/backup/download/{backup}', [\App\Http\Controllers\Admin\BackupController::class, 'download'])->name('admin.backup.download');
+        Route::delete('/backup/{backup}', [\App\Http\Controllers\Admin\BackupController::class, 'destroy'])->name('admin.backup.destroy');
+        Route::post('/backup/clean', [\App\Http\Controllers\Admin\BackupController::class, 'clean'])->name('admin.backup.clean');
+        
+        // Audit Log Management
+        Route::get('/audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('admin.audit.index');
+        Route::get('/audit/{audit}', [\App\Http\Controllers\Admin\AuditController::class, 'show'])->name('admin.audit.show');
+        Route::get('/audit/export', [\App\Http\Controllers\Admin\AuditController::class, 'export'])->name('admin.audit.export');
+        Route::get('/audit/statistics', [\App\Http\Controllers\Admin\AuditController::class, 'statistics'])->name('admin.audit.statistics');
+        
+        // API Rate Limiting
+        Route::get('/api-rate-limits', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'index'])->name('admin.api-rate-limits.index');
+        Route::get('/api-rate-limits/{rateLimit}', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'show'])->name('admin.api-rate-limits.show');
+        Route::post('/api-rate-limits/clear-user/{userId}', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'clearUserLimit'])->name('admin.api-rate-limits.clearUser');
+        Route::post('/api-rate-limits/clear-ip/{ip}', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'clearIpLimit'])->name('admin.api-rate-limits.clearIp');
+        Route::post('/api-rate-limits/set-custom/{userId}', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'setCustomLimit'])->name('admin.api-rate-limits.setCustom');
+        Route::post('/api-rate-limits/block-user/{userId}', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'blockUser'])->name('admin.api-rate-limits.blockUser');
+        Route::post('/api-rate-limits/block-ip/{ip}', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'blockIp'])->name('admin.api-rate-limits.blockIp');
+        Route::post('/api-rate-limits/unblock-user/{userId}', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'unblockUser'])->name('admin.api-rate-limits.unblockUser');
+        Route::post('/api-rate-limits/unblock-ip/{ip}', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'unblockIp'])->name('admin.api-rate-limits.unblockIp');
+        Route::get('/api-rate-limits/statistics', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'statistics'])->name('admin.api-rate-limits.statistics');
+        Route::get('/api-rate-limits/export', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'export'])->name('admin.api-rate-limits.export');
+        Route::delete('/api-rate-limits/cleanup', [\App\Http\Controllers\Admin\ApiRateLimitController::class, 'cleanup'])->name('admin.api-rate-limits.cleanup');
+        
+        // Import/Export Management
+        Route::get('/import-export', [\App\Http\Controllers\Admin\ImportExportController::class, 'index'])->name('admin.import-export.index');
+        Route::get('/import-export/books/import', [\App\Http\Controllers\Admin\ImportExportController::class, 'importBooks'])->name('admin.import-export.books.import');
+        Route::post('/import-export/books/import', [\App\Http\Controllers\Admin\ImportExportController::class, 'processBooksImport'])->name('admin.import-export.books.process');
+        Route::get('/import-export/books/export', [\App\Http\Controllers\Admin\ImportExportController::class, 'exportBooks'])->name('admin.import-export.books.export');
+        Route::post('/import-export/books/export', [\App\Http\Controllers\Admin\ImportExportController::class, 'processBooksExport'])->name('admin.import-export.books.process');
+        Route::get('/import-export/download/{exportLog}', [\App\Http\Controllers\Admin\ImportExportController::class, 'downloadExport'])->name('admin.import-export.download');
+        Route::get('/import-export/template', [\App\Http\Controllers\Admin\ImportExportController::class, 'downloadTemplate'])->name('admin.import-export.template');
+        Route::get('/import-export/import/{importLog}', [\App\Http\Controllers\Admin\ImportExportController::class, 'showImportLog'])->name('admin.import-export.import.show');
+        Route::get('/import-export/export/{exportLog}', [\App\Http\Controllers\Admin\ImportExportController::class, 'showExportLog'])->name('admin.import-export.export.show');
+        Route::get('/import-export/import/{importLog}/progress', [\App\Http\Controllers\Admin\ImportExportController::class, 'getImportProgress'])->name('admin.import-export.import.progress');
+        Route::get('/import-export/export/{exportLog}/progress', [\App\Http\Controllers\Admin\ImportExportController::class, 'getExportProgress'])->name('admin.import-export.export.progress');
+        
+        // Enhanced Dashboard Routes
+        Route::get('/dashboard/data-management', [\App\Http\Controllers\Admin\DashboardController::class, 'dataManagement'])->name('admin.dashboard.data-management');
+        Route::get('/dashboard/system-monitoring', [\App\Http\Controllers\Admin\DashboardController::class, 'systemMonitoring'])->name('admin.dashboard.system-monitoring');
+        Route::get('/dashboard/api-stats', [\App\Http\Controllers\Admin\DashboardController::class, 'apiStats'])->name('admin.dashboard.api-stats');
+        Route::get('/dashboard/audit-stats', [\App\Http\Controllers\Admin\DashboardController::class, 'auditStats'])->name('admin.dashboard.audit-stats');
+        Route::post('/dashboard/refresh-health', [\App\Http\Controllers\Admin\DashboardController::class, 'refreshSystemHealth'])->name('admin.dashboard.refresh-health');
+    });
 
     // Category management
     Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');

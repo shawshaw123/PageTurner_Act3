@@ -185,6 +185,22 @@
                 <svg class="w-5 h-5 mr-3 text-brand-darkgreen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span class="font-medium">Add New Book</span>
             </a>
+            <a href="{{ route('admin.import-export.index') }}" class="flex items-center p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg hover:from-green-600 hover:to-teal-600 hover:text-white transition-all group border-t-2 border-green-500 sm:border-t-0 lg:border-t-0 shadow-sm">
+                <svg class="w-5 h-5 mr-3 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg>
+                <span class="font-medium">Import Books</span>
+            </a>
+            <a href="{{ route('admin.import-export.index') }}" class="flex items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:from-blue-600 hover:to-indigo-600 hover:text-white transition-all group shadow-sm">
+                <svg class="w-5 h-5 mr-3 text-blue-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span class="font-medium">Export Data</span>
+            </a>
+            <a href="{{ route('admin.backup.index') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-brand-darkgreen hover:text-white transition-all group">
+                <svg class="w-5 h-5 mr-3 text-brand-darkgreen group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                <span class="font-medium">Backup Management</span>
+            </a>
+            <a href="{{ route('admin.audit.index') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-brand-darkgreen hover:text-white transition-all group">
+                <svg class="w-5 h-5 mr-3 text-brand-darkgreen group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                <span class="font-medium">Audit Logs</span>
+            </a>
         </div>
     </div>
 

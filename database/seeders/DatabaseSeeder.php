@@ -12,6 +12,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->command->info('🌱 Starting Database Seeding...');
+        
+        // Basic seeders for core data
         $this->call([
             AdminSeeder::class,
             BookDataSeeder::class,
@@ -39,6 +42,13 @@ class DatabaseSeeder extends Seeder
                     'comment' => 'Nice book',
                 ]);
             });
+        }
+
+        // Lab 7: Mass data seeding for performance testing
+        if ($this->command->confirm('Do you want to run the Mass Book Seeder (1M records)? This will take several minutes.')) {
+            $this->call([
+                MassBookSeeder::class,
+            ]);
         }
     }
 }

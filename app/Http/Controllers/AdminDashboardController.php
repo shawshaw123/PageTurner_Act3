@@ -35,14 +35,17 @@ class AdminDashboardController extends Controller
             ->take(10)
             ->get();
 
-        // Recent reviews (latest 5)
-        $recentReviews = Review::with(['user', 'book'])
+        // Recent reviews (latest 5) with nested book aggregates
+        $recentReviews = Review::with(['user', 'book' => function($query) {
+            $query->withAvg('reviews', 'rating')->withCount('reviews');
+        }])
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
-        // Low stock books (less than 5)
-        $lowStockBooks = Book::where('stock_quantity', '<', 5)
+        // Low stock books (less than 5) with aggregates
+        $lowStockBooks = Book::withAvg('reviews', 'rating')->withCount('reviews')
+            ->where('stock_quantity', '<', 5)
             ->orderBy('stock_quantity', 'asc')
             ->take(5)
             ->get();

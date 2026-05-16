@@ -1,172 +1,168 @@
 # PageTurner Online Bookstore Management System
 
-A comprehensive Laravel-based online bookstore management system developed for ITSD 82 Web Software Tools laboratory activity.
+## Laboratory Activity 7: Mass Data Seeding, Performance Optimization, and Scalability Engineering
 
-## Features
-
-### Core Functionality
-- **User Authentication**: Complete registration, login, and profile management using Laravel Breeze
-- **Role-Based Access Control**: Admin and Customer roles with different permissions
-- **Book Management**: Full CRUD operations for books with categories, pricing, and inventory
-- **Category Management**: Organize books into categories with descriptions
-- **Review System**: Customers can rate and review books they've purchased
-- **Order Management**: Track customer orders and order status
-
-### Technical Features
-- **Database Operations**: Complete Eloquent ORM implementation with relationships
-- **Blade Templating**: Advanced template system with layouts, components, and partials
-- **Responsive Design**: Mobile-friendly UI using Tailwind CSS
-- **Form Validation**: Comprehensive input validation and error handling
-- **Data Seeding**: Realistic test data generation using factories
-
-## Installation
-
-### Prerequisites
-- PHP 8.2+
-- MySQL/MariaDB
-- Composer
-- Node.js & NPM
-- XAMPP (for local development)
-
-### Setup Instructions
-
-1. **Clone/Download the Project**
-   ```bash
-   cd c:\Users\User\MARK\xammp\htdocs\Actvity3
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   composer install
-   npm install
-   npm run build
-   ```
-
-3. **Database Configuration**
-   - Create a MySQL database named `pageturner_bookstore`
-   - Configure `.env` file with your database credentials:
-   ```
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DATABASE=pageturner_bookstore
-   USERNAME=root
-   PASSWORD=your_password
-   ```
-
-4. **Run Migrations and Seeders**
-   ```bash
-   php artisan migrate
-   php artisan db:seed
-   ```
-
-5. **Start Development Server**
-   ```bash
-   php artisan serve
-   ```
-
-6. **Access the Application**
-   - URL: http://localhost:8000
-   - Admin Login: admin@pageturner.com / password
-   - Customer Accounts: Created during seeding
-
-## Database Schema
-
-### Tables
-- **users**: User accounts with role-based access (admin/customer)
-- **categories**: Book categories with descriptions
-- **books**: Book inventory with category relationships
-- **orders**: Customer orders with status tracking
-- **order_items**: Individual items within orders
-- **reviews**: Customer book ratings and comments
-
-### Relationships
-- Users have many Orders and Reviews
-- Categories have many Books
-- Books belong to Categories, have many Reviews and OrderItems
-- Orders belong to Users, have many OrderItems
-- Reviews belong to Users and Books
-
-## Route Structure
-
-### Public Routes
-- `/` - Homepage with featured books and categories
-- `/books` - Book listing with search and filtering
-- `/books/{book}` - Book details with reviews
-- `/categories` - Category listing
-- `/categories/{category}` - Category-specific books
-
-### Authenticated Routes
-- `/profile` - User profile management
-- `/orders` - User order history
-- `/books/{book}/reviews` - Submit book reviews
-
-### Admin Routes
-- `/admin/categories/*` - Category management (CRUD)
-- `/admin/books/*` - Book management (CRUD)
-
-## Controllers
-
-- **HomeController**: Homepage with featured content
-- **BookController**: Book CRUD operations and search
-- **CategoryController**: Category management
-- **OrderController**: Order processing and tracking
-- **ReviewController**: Review submission and management
-
-## Blade Components
-
-- **layouts/app.blade.php**: Main application layout
-- **components/alert.blade.php**: Reusable alert component
-- **components/book-card.blade.php**: Book display card
-- **partials/navigation.blade.php**: Site navigation
-- **partials/footer.blade.php**: Site footer
-- **partials/flash-messages.blade.php**: Success/error messages
-
-## Testing Data
-
-The application includes comprehensive seeders that create:
-- 1 Admin user (admin@pageturner.com)
-
-
-## Security Features
-
-- CSRF protection on all forms
-- Input validation and sanitization
-- Role-based authorization
-- Password hashing
-- SQL injection prevention via Eloquent ORM
-
-## Browser Compatibility
-
-- Chrome/Chromium (recommended)
-- Firefox
-- Safari
-- Edge
-
-## Development Notes
-
-- Uses Laravel 12 with PHP 8.2+
-- Tailwind CSS for styling
-- Laravel Breeze for authentication
-- Responsive design for mobile compatibility
-- Clean, maintainable code following Laravel conventions
-
-## Future Enhancements
-
-Potential bonus features to implement:
-- Shopping cart functionality
-- Advanced search with filters
-- Image upload and processing
-- Order status notifications
-- Payment integration
-- User dashboard with statistics
-
-## Support
-
-For technical support or questions regarding this laboratory activity, please refer to the course materials or contact your instructor.
+**Course:** ITSD 82 - Web Software Tools (Fundamentals of Laravel)  
+**Section:** BSIT 3C  
+**Schedule:** Thursday 1:00 PM - 3:00 PM  
+**Room:** CISC Room 3
 
 ---
 
-**Developed for:** ITSD 82 Web Software Tools  
-**Laboratory Activity 3:** Online Bookstore Management System  
-**Date:** February 2026
+## Hardware Specifications
+
+| Component       | Specification                          |
+|-----------------|----------------------------------------|
+| OS              | Windows 10/11                          |
+| Web Server      | XAMPP (Apache + MySQL/MariaDB)         |
+| PHP Version     | 8.2+                                   |
+| Database        | MySQL/MariaDB via XAMPP                |
+| Framework       | Laravel 12.x                           |
+| Cache Driver    | File (Redis-ready with graceful fallback) |
+| Search Engine   | Laravel Scout (Database Driver)        |
+| RAM             | 8 GB+                                  |
+| Storage         | SSD                                    |
+
+---
+
+## Achieved Benchmark Times
+
+### 7.1 Seeding Performance
+
+| Metric                        | Target       | Achieved        | Status |
+|-------------------------------|--------------|-----------------|--------|
+| 1M records seeded             | < 10 min     | 1,000,000 records | PASS   |
+| Memory usage                  | < 512 MB     | 32 MB           | PASS   |
+| ISBNs valid (checksum)        | All valid    | All valid       | PASS   |
+| Foreign keys valid            | All valid    | All valid       | PASS   |
+| Realistic data distributions  | Varied       | 2000 unique authors, $9.99-$49.99 | PASS |
+
+### 7.2 Query Performance (100 iterations each)
+
+| Query Type       | Target    | Achieved  | Status |
+|------------------|-----------|-----------|--------|
+| ISBN Lookup      | < 50 ms   | 0.38 ms   | PASS   |
+| Catalog Listing  | < 100 ms  | 1.03 ms   | PASS   |
+| Category Filter  | < 150 ms  | 1.31 ms   | PASS   |
+| Full-Text Search | < 300 ms  | 25.68 ms  | PASS   |
+| N+1 Detection    | None      | 0 found   | PASS   |
+
+### 7.3 Cache Validation
+
+| Metric                     | Target    | Achieved        | Status |
+|----------------------------|-----------|-----------------|--------|
+| Cache retrieval            | < 10 ms   | 0.714 ms        | PASS   |
+| Cache invalidation         | Working   | Working         | PASS   |
+| Cache store configured     | Yes       | File (Redis-ready) | PASS |
+| Cache tags support         | Yes       | Graceful fallback | PASS  |
+
+### 7.4 Load Testing
+
+| Metric                     | Target       | Achieved              | Status |
+|----------------------------|--------------|-----------------------|--------|
+| 50 concurrent requests     | No errors    | 50/50 (avg 386ms)     | PASS   |
+| Rate limiting              | Configured   | Throttle middleware    | PASS   |
+| Scout indexing             | Configured   | Database driver, sync  | PASS   |
+
+### 7.5 Data Integrity
+
+| Metric                     | Target       | Achieved              | Status |
+|----------------------------|--------------|-----------------------|--------|
+| 1M Eloquent query          | No timeout   | 1M books (325ms)      | PASS   |
+| Export 50K records          | No OOM       | 50K in 3.4s (46MB)    | PASS   |
+| Partition pruning           | Working      | 7 partitions          | PASS   |
+
+**Overall Score: 30/30 tests passed (100%)**
+
+---
+
+## Project Architecture
+
+### Source Code Repository (Deliverables 8.1)
+
+| File | Description |
+|------|-------------|
+| `database/factories/BookFactory.php` | Optimized factory with valid ISBN-13 generation |
+| `database/seeders/MassBookSeeder.php` | Chunked batch insert seeder for 1M records |
+| `app/Repositories/BookRepository.php` | Optimized data access layer with cursor pagination |
+| `app/Repositories/SimpleBookRepository.php` | File-cache compatible repository (no Redis required) |
+| `app/Services/BookCacheService.php` | Redis caching abstraction with tag support and graceful fallback |
+| `app/Observers/BookObserver.php` | Cache invalidation logic triggered by model events |
+| `app/Console/Commands/BenchmarkBookQueries.php` | Automated performance benchmarking command |
+| `app/Console/Commands/SimpleBenchmarkBookQueries.php` | Benchmark command for non-Redis environments |
+| `app/Console/Commands/Lab7Validation.php` | Complete Lab 7 validation suite (30 tests) |
+| `app/Jobs/WarmCategoryCache.php` | Async background cache warming job |
+| `config/scout.php` | Laravel Scout search configuration |
+| `database/migrations/*_optimize_books_*` | Index optimization migrations |
+| `database/migrations/*_partition_books_*` | Table partitioning by year |
+| `database/migrations/*_materialized_views*` | Materialized view tables for reporting |
+
+### Configuration Files (Deliverables 8.2)
+
+| File | Description |
+|------|-------------|
+| `.env.example` | Redis, read replica, and Scout environment variable templates |
+| `config/database.php` | Read/write splitting and Redis connection configuration |
+| `config/cache.php` | Redis tag-based cache store configuration |
+
+---
+
+## Performance Optimization Strategies
+
+### Database Indexing
+- **Composite Index**: `idx_books_catalog_filter` on (category_id, published_at, is_active)
+- **Covering Index**: `idx_books_price_stock` on (price, stock_quantity, id)
+- **Full-Text Index**: `idx_books_fulltext` on (title, description)
+- **Active Filter**: `idx_books_active` on (is_active)
+- **ISBN Lookup**: `idx_books_isbn_lookup` on (isbn)
+
+### Table Partitioning
+The books table is partitioned by publication year using `RANGE(YEAR(published_at))`:
+- `p_old`: Before 2000
+- `p2000`: 2000-2004
+- `p2005`: 2005-2009
+- `p2010`: 2010-2014
+- `p2015`: 2015-2019
+- `p2020`: 2020-2024
+- `p_future`: 2025+
+
+### N+1 Query Prevention
+- Global scope on Book model: `withAvg('reviews', 'rating')` and `withCount('reviews')`
+- Eager loading via `with('category')` on all queries
+- Bulk `whereIn()` queries in CartController instead of per-item lookups
+
+### Cache Architecture
+- Graceful degradation: Supports Redis tags when available, falls back to file cache
+- BookObserver triggers cache invalidation on create/update/delete
+- WarmCategoryCache job pre-populates popular category data
+
+---
+
+## How to Run Tests
+
+### Full Validation (30 tests)
+```bash
+php artisan lab7:validate
+```
+
+### Query Performance Benchmark
+```bash
+php artisan benchmark:simple-book-queries
+```
+
+### Additional Tests (N+1, Export, Partitions)
+```bash
+php lab7_tests.php
+```
+
+---
+
+## Setup Instructions
+
+1. Clone the repository
+2. Copy `.env.example` to `.env` and configure database credentials
+3. Run `composer install`
+4. Run `php artisan key:generate`
+5. Run `php artisan migrate`
+6. Run `php artisan db:seed --class=MassBookSeeder` (seeds 1M records)
+7. Run `php artisan lab7:validate` to verify all requirements

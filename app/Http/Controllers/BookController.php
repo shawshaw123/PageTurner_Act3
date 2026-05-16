@@ -11,7 +11,9 @@ class BookController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Book::with('category');
+        $query = Book::with('category')
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews');
 
         // Advanced search - full-text search across multiple fields
         if ($request->has('search')) {
