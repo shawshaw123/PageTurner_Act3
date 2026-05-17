@@ -166,3 +166,14 @@ php lab7_tests.php
 5. Run `php artisan migrate`
 6. Run `php artisan db:seed --class=MassBookSeeder` (seeds 1M records)
 7. Run `php artisan lab7:validate` to verify all requirements
+
+## Admin Account
+
+If you need to restore the admin account, run:
+```bash
+php artisan tinker --execute="App\Models\User::updateOrCreate(['email' => 'admin@pageturner.com'], ['name' => 'Admin User', 'password' => Hash::make('admin123'), 'role' => 'admin', 'email_verified_at' => now()]);"
+```
+
+**Login Credentials:**
+- Email: admin@pageturner.com
+- Password: admin123

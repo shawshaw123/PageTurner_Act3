@@ -310,4 +310,14 @@ Route::middleware(['auth', 'admin', 'verified'])->group(function () {
 Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
 Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
 
+// ─── AI Chat Routes (Lab 8) ──────────────────────────────────────
+Route::get('/ai/chat', [App\Http\Controllers\AIChatController::class, 'index'])->name('ai.chat');
+Route::post('/ai/chat/send', [App\Http\Controllers\AIChatController::class, 'sendMessage'])->name('ai.chat.send');
+Route::get('/ai/chat/history', [App\Http\Controllers\AIChatController::class, 'getHistory'])->name('ai.chat.history');
+Route::post('/ai/chat/new', [App\Http\Controllers\AIChatController::class, 'newConversation'])->name('ai.chat.new');
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/ai/dashboard', [App\Http\Controllers\AIChatController::class, 'dashboard'])->name('admin.ai.dashboard');
+});
+
 require __DIR__.'/auth.php';

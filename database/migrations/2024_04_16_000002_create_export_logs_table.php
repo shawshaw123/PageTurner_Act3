@@ -22,7 +22,6 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable(); // Download link expiration
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
-            $table->timestamp('updated_at')->nullable();
             $table->timestamps();
             
             $table->index(['user_id', 'status']);

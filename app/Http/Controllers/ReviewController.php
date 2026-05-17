@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
 use App\Notifications\NewReviewSubmitted;
+use App\Jobs\ProcessReviewAiModeration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 
@@ -14,13 +15,13 @@ class ReviewController extends Controller
     public function store(Request $request, Book $book)
     {
         $validated = $request->validate([
+            'comment' => 'required|string|max:1000',
             'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:1000',
         ]);
 
         $validated['user_id'] = auth()->id();
         $validated['book_id'] = $book->id;
-        $validated['status'] = 'approved'; // Default status for new reviews
+        $validated['status'] = 'pending'; // Queue job will moderate it and set it to approved/rejected
 
         // Check if user already reviewed this book
         $existingReview = Review::where('user_id', auth()->id())
@@ -29,16 +30,20 @@ class ReviewController extends Controller
 
         if ($existingReview) {
             $existingReview->update($validated);
-            $message = 'Review updated successfully!';
+            ProcessReviewAiModeration::dispatch($existingReview);
+            $message = 'Review updated! It is being processed by our AI moderator in the background.';
         } else {
             $review = Review::create($validated);
             $review->load(['user', 'book']);
+
+            // Dispatch background queue job
+            ProcessReviewAiModeration::dispatch($review);
 
             // Notify all admins about the new review
             $admins = User::where('role', 'admin')->get();
             Notification::send($admins, new NewReviewSubmitted($review));
 
-            $message = 'Review submitted successfully!';
+            $message = 'Review submitted! It is currently being processed by our AI moderator in the background.';
         }
 
         return redirect()->route('books.show', $book)

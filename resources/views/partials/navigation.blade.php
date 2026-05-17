@@ -18,6 +18,9 @@
                     <a href="{{ route('categories.index') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors">
                         Categories
                     </a>
+                    <a href="{{ route('ai.chat') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors font-semibold text-brand-amber flex items-center gap-1">
+                        AI Chat
+                    </a>
                     
                     @auth
                         @if(auth()->user()->isAdmin())
