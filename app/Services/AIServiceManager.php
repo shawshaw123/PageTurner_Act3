@@ -272,28 +272,116 @@ class AIServiceManager
             return "Hello! I'm your PageTurner AI Assistant. How can I help you find books today?";
         }
 
-        if (str_contains($prompt, 'book') || str_contains($prompt, 'recommend') || str_contains($prompt, 'suggest')) {
-            return "I'd be happy to help you find books! Based on our catalog, we have a great selection of fiction, non-fiction, programming, and many other genres. Could you tell me more about what type of books you're interested in? For example:\n\n- Fiction novels\n- Programming and tech books\n- Self-help and business\n- Children's books\n- And many more!";
+        // Fiction/Novel queries
+        if (str_contains($prompt, 'fiction') || str_contains($prompt, 'novel')) {
+            $books = \App\Models\Book::where('title', 'like', '%fiction%')
+                ->orWhere('description', 'like', '%novel%')
+                ->orWhereIn('category_id', function($q) {
+                    $q->select('id')->from('categories')->where('name', 'like', '%fiction%');
+                })
+                ->limit(3)
+                ->get(['title', 'author', 'price']);
+
+            if ($books->count() > 0) {
+                $response = "Here are some great fiction novels from our catalog:\n\n";
+                foreach ($books as $book) {
+                    $response .= "📖 **{$book->title}** by {$book->author} - \${$book->price}\n";
+                }
+                $response .= "\nWould you like more details about any of these books?";
+                return $response;
+            }
+            return "We have a wonderful selection of fiction novels! Our catalog includes contemporary fiction, classics, thrillers, romance, and more. Prices range from $9.99 to $49.99. What genre of fiction interests you most?";
         }
 
-        if (str_contains($prompt, 'available') || str_contains($prompt, 'stock') || str_contains($prompt, 'inventory')) {
-            return "I can help you check our inventory! Our bookstore currently has a wide selection of books across multiple categories. To get specific information about availability, please let me know:\n\n- Which book or author you're looking for\n- The genre or category you're interested in\n- Your budget range\n\nI'll then search our catalog and provide you with up-to-date stock information!";
+        // Programming queries
+        if (str_contains($prompt, 'programming') || str_contains($prompt, 'tech') || str_contains($prompt, 'code')) {
+            $books = \App\Models\Book::where('title', 'like', '%programming%')
+                ->orWhere('title', 'like', '%code%')
+                ->orWhere('description', 'like', '%programming%')
+                ->limit(3)
+                ->get(['title', 'author', 'price']);
+
+            if ($books->count() > 0) {
+                $response = "Here are some popular programming books:\n\n";
+                foreach ($books as $book) {
+                    $response .= "💻 **{$book->title}** by {$book->author} - \${$book->price}\n";
+                }
+                $response .= "\nThese are great for learning new skills!";
+                return $response;
+            }
+            return "We have excellent programming books covering Python, JavaScript, Java, web development, and more. Most are priced between $19.99 and $39.99. Which programming language are you interested in?";
         }
 
-        if (str_contains($prompt, 'price') || str_contains($prompt, 'cost') || str_contains($prompt, 'budget') || str_contains($prompt, 'under')) {
-            return "We have books available across various price ranges to fit every budget! Our catalog includes:\n\n- Budget-friendly options under $15\n- Mid-range books between $15-$30\n- Premium editions and special collections\n\nTo find books within your specific budget, just let me know your price range and I'll search for matching titles!";
+        // Price range queries
+        if (str_contains($prompt, 'price') || str_contains($prompt, 'cost') || str_contains($prompt, 'budget')) {
+            if (str_contains($prompt, 'under') || str_contains($prompt, 'cheap') || str_contains($prompt, 'budget')) {
+                $books = \App\Models\Book::where('price', '<', 15)->limit(3)->get(['title', 'author', 'price']);
+                if ($books->count() > 0) {
+                    $response = "Here are budget-friendly books under $15:\n\n";
+                    foreach ($books as $book) {
+                        $response .= "💰 **{$book->title}** by {$book->author} - \${$book->price}\n";
+                    }
+                    return $response;
+                }
+            }
+            if (str_contains($prompt, 'mid') || str_contains($prompt, '15') || str_contains($prompt, '30')) {
+                $books = \App\Models\Book::whereBetween('price', [15, 30])->limit(3)->get(['title', 'author', 'price']);
+                if ($books->count() > 0) {
+                    $response = "Here are mid-range books ($15-$30):\n\n";
+                    foreach ($books as $book) {
+                        $response .= "📚 **{$book->title}** by {$book->author} - \${$book->price}\n";
+                    }
+                    return $response;
+                }
+            }
+            return "Our books range from $9.99 to $49.99:\n\n- Under $15: Great for budget readers\n- $15-$30: Mid-range with good value\n- Over $30: Premium editions and special collections\n\nWhat's your budget?";
         }
 
+        // List of books query
+        if (str_contains($prompt, 'list') || str_contains($prompt, 'what books') || str_contains($prompt, 'show me')) {
+            $books = \App\Models\Book::limit(5)->get(['title', 'author', 'price', 'stock_quantity']);
+            $response = "Here are some books from our catalog:\n\n";
+            foreach ($books as $book) {
+                $stock = $book->stock_quantity > 0 ? "✅ In Stock ({$book->stock_quantity})" : "❌ Out of Stock";
+                $response .= "📖 **{$book->title}** by {$book->author}\n   Price: \${$book->price} | $stock\n\n";
+            }
+            $response .= "We have many more books! Would you like to search by genre or author?";
+            return $response;
+        }
+
+        // Stock/Inventory queries
+        if (str_contains($prompt, 'stock') || str_contains($prompt, 'available') || str_contains($prompt, 'inventory')) {
+            $totalBooks = \App\Models\Book::count();
+            $inStock = \App\Models\Book::where('stock_quantity', '>', 0)->count();
+            return "📦 **Inventory Status:**\n\n- Total books in catalog: {$totalBooks}\n- Currently in stock: {$inStock}\n- Out of stock: " . ($totalBooks - $inStock) . "\n\nI can check specific book availability if you tell me which title you're interested in!";
+        }
+
+        // Author queries
         if (str_contains($prompt, 'author')) {
-            return "We have books from many talented authors! To help you find books by a specific author or discover new writers, please tell me:\n\n- The author's name you're looking for\n- Or the genre/subject you're interested in\n\nI'll search our catalog and show you relevant books with author information!";
+            $authors = \App\Models\Book::select('author')->distinct()->limit(5)->pluck('author');
+            $response = "We have books by many talented authors! Here are some featured authors:\n\n";
+            foreach ($authors as $author) {
+                $response .= "✍️ {$author}\n";
+            }
+            $response .= "\nWhich author are you interested in?";
+            return $response;
         }
 
+        // Help queries
         if (str_contains($prompt, 'help') || str_contains($prompt, 'what can')) {
-            return "I'm here to help you with all your bookstore needs! Here's what I can do:\n\n📚 **Find Books**: Search for specific titles, authors, or genres\n💡 **Get Recommendations**: Receive personalized book suggestions\n📦 **Check Inventory**: Verify stock availability and pricing\n🔍 **Answer Questions**: Provide information about our bookstore and services\n\nJust ask me anything about books, and I'll do my best to assist you!";
+            return "I'm here to help! Here's what I can do:\n\n📚 **Find Books** - Search by title, author, or genre\n� **Price Search** - Find books within your budget\n📦 **Check Stock** - Verify availability\n� **Get Recommendations** - Personalized suggestions\n\nTry asking: \"Show me fiction books under $20\" or \"What programming books do you have?\"";
+        }
+
+        // Generic book query
+        if (str_contains($prompt, 'book') || str_contains($prompt, 'recommend')) {
+            $randomBook = \App\Models\Book::inRandomOrder()->first(['title', 'author', 'price', 'description']);
+            if ($randomBook) {
+                return "📖 **Featured Book Recommendation:**\n\n**{$randomBook->title}** by {$randomBook->author}\nPrice: \${$randomBook->price}\n\n{$randomBook->description}\n\nWould you like more recommendations?";
+            }
         }
 
         // Default response
-        return "Thank you for your question! I'm your PageTurner AI Assistant and I'm here to help you with book recommendations, inventory checks, and any questions about our bookstore. \n\nTo get started, you can ask me about:\n- Book recommendations by genre\n- Specific authors or titles\n- Stock availability\n- Price ranges and budget options\n\nWhat would you like to know?";
+        return "I'd be happy to help! You can ask me about:\n\n- Book recommendations by genre\n- Specific authors or titles\n- Stock availability\n- Price ranges\n- Programming books\n- Fiction novels\n\nWhat would you like to know?";
     }
 
     /**

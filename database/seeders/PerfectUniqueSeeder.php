@@ -34,8 +34,17 @@ class PerfectUniqueSeeder extends Seeder
         
         $categoryIds = DB::table('categories')->pluck('id')->toArray();
         if (empty($categoryIds)) {
-            $this->error('❌ No categories found.');
-            return;
+            $this->command->info('🌱 No categories found. Automatically seeding default categories...');
+            $categories = ['Fiction', 'Horror', 'Romance', 'Fantasy', 'Science', 'Children', 'History', 'Non-Fiction'];
+            foreach ($categories as $cat) {
+                DB::table('categories')->insert([
+                    'name' => $cat,
+                    'description' => "Books in the {$cat} category.",
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+            $categoryIds = DB::table('categories')->pluck('id')->toArray();
         }
         
         // Generate large pools of unique data
@@ -136,8 +145,8 @@ class PerfectUniqueSeeder extends Seeder
             $checksum = $this->calculateIsbnChecksum($isbn);
             $isbn .= $checksum;
             
-            // Generate PERFECTLY unique title using book index
-            $title = "Book #" . str_pad($bookIndex, 7, '0', STR_PAD_LEFT) . ": " . $this->generateTitleComponent($bookIndex);
+            // Generate PERFECTLY unique title without any numbers
+            $title = $this->generatePerfectlyUniqueTitle($bookIndex);
             
             // Select author
             $authorIndex = ($bookIndex * 13) % count($authors);
@@ -150,7 +159,7 @@ class PerfectUniqueSeeder extends Seeder
                 'price' => mt_rand(999, 4999) / 100,
                 'stock_quantity' => mt_rand(0, 1000),
                 'category_id' => $categoryIds[($bookIndex * 7) % count($categoryIds)],
-                'description' => "This is book number {$bookIndex} in our comprehensive collection. A compelling narrative by {$author} that explores unique themes and ideas.",
+                'description' => "A compelling narrative by {$author} that explores the deep themes and ideas found in {$title}. A masterpiece that challenges conventional thinking and offers new perspectives.",
                 'cover_image' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -160,19 +169,19 @@ class PerfectUniqueSeeder extends Seeder
         return $books;
     }
     
-    private function generateTitleComponent(int $seed): string
+    private function generatePerfectlyUniqueTitle(int $seed): string
     {
-        // Use multiple word pools and seed to create variety
         $adjectives = [
             'Amazing', 'Beautiful', 'Brilliant', 'Captivating', 'Challenging', 'Compelling',
             'Creative', 'Curious', 'Deep', 'Dynamic', 'Elegant', 'Essential', 'Extraordinary',
             'Fascinating', 'Flexible', 'Fundamental', 'Global', 'Hidden', 'Important',
             'Innovative', 'Inspiring', 'Interesting', 'Key', 'Logical', 'Magical',
-            'Modern', 'Natural', 'New', 'Original', 'Powerful', 'Practical', 'Professional',
+            'Modern', 'Natural', 'Original', 'Powerful', 'Practical', 'Professional',
             'Quality', 'Quick', 'Quiet', 'Rare', 'Real', 'Revolutionary', 'Scientific',
             'Secret', 'Simple', 'Smart', 'Special', 'Strategic', 'Strong', 'Technical',
-            'Ultimate', 'Unique', 'Universal', 'Valuable', 'Various', 'Virtual', 'Wonderful'
-        ];
+            'Ultimate', 'Unique', 'Universal', 'Valuable', 'Various', 'Virtual', 'Wonderful',
+            'Ancient', 'Eternal', 'Future', 'Lost', 'Forgotten', 'Infinite', 'Silent', 'Golden'
+        ]; // 60 adjectives
         
         $nouns = [
             'Adventure', 'Analysis', 'Approach', 'Art', 'Balance', 'Beauty', 'Challenge',
@@ -188,43 +197,66 @@ class PerfectUniqueSeeder extends Seeder
             'Revolution', 'Science', 'Secret', 'Solution', 'Space', 'Spirit', 'Story',
             'Strategy', 'Success', 'System', 'Technology', 'Theory', 'Thought', 'Time',
             'Tool', 'Truth', 'Understanding', 'Value', 'Vision', 'Voice', 'Wisdom',
-            'Work', 'World', 'Writing'
-        ];
+            'Work', 'World', 'Writing', 'Universe', 'Chronicle', 'Legend', 'Legacy', 'Destiny'
+        ]; // 100 nouns
+        
+        $connectors = [
+            'of', 'in', 'for', 'with', 'under', 'beyond', 'through', 'across'
+        ]; // 8 connectors
+        
+        $secondaryNouns = [
+            'Humanity', 'Society', 'Civilization', 'Culture', 'Leadership', 'Innovation',
+            'Nature', 'Universe', 'Cosmos', 'Reality', 'Imagination', 'Creativity',
+            'Wisdom', 'Knowledge', 'Success', 'Progress', 'Change', 'Growth',
+            'Tomorrow', 'Today', 'Yesterday', 'Existence', 'Perception', 'Thought',
+            'Behavior', 'Communication', 'Interaction', 'Connection', 'Relation', 'Action',
+            'Movement', 'Structure', 'Function', 'System', 'Network', 'Pattern',
+            'Method', 'Process', 'Concept', 'Theory', 'Practice', 'Application',
+            'Strategy', 'Policy', 'Decision', 'Choice', 'Opportunity', 'Challenge',
+            'Solution', 'Result', 'Impact', 'Influence', 'Effect', 'Cause',
+            'Purpose', 'Meaning', 'Value', 'Quality', 'Standard', 'Measure'
+        ]; // 60 secondary nouns
         
         $contexts = [
-            'for Beginners', 'for Experts', 'in Practice', 'Theory and Practice',
-            'A Complete Guide', 'The Fundamentals', 'Advanced Techniques',
-            'Modern Methods', 'Traditional Wisdom', 'Future Trends',
-            'Historical Perspective', 'Global View', 'Local Focus',
-            'Personal Development', 'Professional Growth', 'Academic Study',
-            'Real World Applications', 'Theoretical Foundations', 'Practical Solutions'
-        ];
+            'in the Modern Era', 'for the Next Generation', 'and Beyond', 'in Theory and Practice',
+            'A Comprehensive Study', 'A New Perspective', 'The Untold Story', 'The Essential Guide',
+            'Advanced Insights', 'Practical Approaches', 'Historical Analysis', 'Future Horizons',
+            'Global Applications', 'Personal Explorations', 'Critical Evaluations', 'Strategic Directions',
+            'Real World Examples', 'New Dimensions', 'Key Concepts', 'Hidden Aspects',
+            'The Ultimate Journey', 'A Path to Success', 'Principles and Practice', 'A Closer Look',
+            'Through the Lens of Science', 'In Search of Truth', 'Unlocking the Potential', 'Making a Difference',
+            'Creating the Future', 'Understanding the Past', 'Navigating the Present', 'Redefining the Standards',
+            'Bridging the Gap', 'Breaking the Boundaries', 'A Vision for Change', 'The Power of Choice',
+            'In Pursuit of Excellence', 'From Concept to Reality', 'A Roadmap for Growth', 'The Art of Living'
+        ]; // 40 contexts
         
-        // Use seed to generate unique combinations
-        $adjIndex = ($seed * 3) % count($adjectives);
-        $nounIndex = ($seed * 7) % count($nouns);
-        $contextIndex = ($seed * 11) % count($contexts);
+        $countA = count($adjectives);
+        $countB = count($nouns);
+        $countC = count($connectors);
+        $countD = count($secondaryNouns);
+        $countE = count($contexts);
         
-        $patterns = [
-            "{adjective} {noun}",
-            "{adjective} {noun} {context}",
-            "The {adjective} {noun}",
-            "{noun}: {adjective} {context}",
-            "Understanding {adjective} {noun}",
-            "{adjective} {noun} Explained",
-            "The {noun} of {adjective} {context}"
-        ];
+        $idxA = $seed % $countA;
+        $temp = (int)($seed / $countA);
         
-        $patternIndex = ($seed * 13) % count($patterns);
-        $pattern = $patterns[$patternIndex];
+        $idxB = $temp % $countB;
+        $temp = (int)($temp / $countB);
         
-        return str_replace([
-            '{adjective}', '{noun}', '{context}'
-        ], [
-            $adjectives[$adjIndex],
-            $nouns[$nounIndex],
-            $contexts[$contextIndex]
-        ], $pattern);
+        $idxC = $temp % $countC;
+        $temp = (int)($temp / $countC);
+        
+        $idxD = $temp % $countD;
+        $temp = (int)($temp / $countD);
+        
+        $idxE = $temp % $countE;
+        
+        $adj = $adjectives[$idxA];
+        $noun = $nouns[$idxB];
+        $conn = $connectors[$idxC];
+        $secNoun = $secondaryNouns[$idxD];
+        $context = $contexts[$idxE];
+        
+        return "The {$adj} {$noun} {$conn} {$secNoun}: {$context}";
     }
     
     private function calculateIsbnChecksum(string $isbn12): int

@@ -1,0 +1,1 @@
+<?php $file = "C:/Users/User/MARK/xammp/htdocs/Activity4/vendor/laravel/framework/src/Illuminate/Container/Container.php"; $lines = file($file); for ($i = 800; $i <= 850; $i++) { echo ($i + 1) . ": " . htmlspecialchars($lines[$i]) . "<br>"; } ?>

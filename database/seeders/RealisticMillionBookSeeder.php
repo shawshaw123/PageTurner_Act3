@@ -34,7 +34,7 @@ class RealisticMillionBookSeeder extends Seeder
         
         $categoryIds = DB::table('categories')->pluck('id')->toArray();
         if (empty($categoryIds)) {
-            $this->error('❌ No categories found.');
+            $this->command->error('❌ No categories found.');
             return;
         }
         
