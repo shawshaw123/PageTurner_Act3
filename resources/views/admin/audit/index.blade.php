@@ -1,171 +1,122 @@
 @extends('layouts.app')
 
-@section('title', 'Audit Logs - Admin')
+@section('title', 'Audit Logs — PageTurner Admin')
+
+@section('header')
+<x-page-header
+    title="Audit Logs"
+    subtitle="Comprehensive security and model change trail across users, books, orders, and reviews."
+    :breadcrumbs="[
+        ['label' => 'Admin', 'url' => route('admin.dashboard')],
+        ['label' => 'Audit Logs'],
+    ]"
+>
+    <x-slot:actions>
+        <form action="{{ route('admin.audit.export') }}" method="GET" class="inline">
+            <input type="hidden" name="format" value="csv">
+            <button type="submit" class="px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
+                Export CSV
+            </button>
+        </form>
+    </x-slot:actions>
+</x-page-header>
+@endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1><i class="fas fa-search"></i> Audit Logs</h1>
-                <div>
-                    <form action="{{ route('admin.audit.export') }}" method="GET" class="d-inline">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-download"></i> Export Logs
-                        </button>
-                    </form>
-                    <a href="{{ route('admin.audit.statistics') }}" class="btn btn-info ml-2">
-                        <i class="fas fa-chart-bar"></i> Statistics
-                    </a>
-                </div>
-            </div>
-        </div>
+@if(isset($stats))
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <x-stat-card label="Total Events" :value="number_format($stats['total_audits'])" accent="brand" />
+        <x-stat-card label="Today" :value="number_format($stats['today_audits'])" accent="info" />
+        <x-stat-card label="Updates &amp; Deletes" :value="number_format($stats['critical_events'])" accent="warning" />
+        <x-stat-card label="Unique Users" :value="number_format($stats['unique_users'])" accent="neutral" />
     </div>
+@endif
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-filter"></i> Filter Audit Logs</h5>
-                </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ route('admin.audit.index') }}">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="user_id" class="form-label">User</label>
-                                    <select name="user_id" id="user_id" class="form-control">
-                                        <option value="">All Users</option>
-                                        @foreach($users as $user)
-                                            <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                                                {{ $user->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="event" class="form-label">Event</label>
-                                    <select name="event" id="event" class="form-control">
-                                        <option value="">All Events</option>
-                                        <option value="created" {{ request('event') == 'created' ? 'selected' : '' }}>Created</option>
-                                        <option value="updated" {{ request('event') == 'updated' ? 'selected' : '' }}>Updated</option>
-                                        <option value="deleted" {{ request('event') == 'deleted' ? 'selected' : '' }}>Deleted</option>
-                                        <option value="login" {{ request('event') == 'login' ? 'selected' : '' }}>Login</option>
-                                        <option value="logout" {{ request('event') == 'logout' ? 'selected' : '' }}>Logout</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="auditable_type" class="form-label">Model</label>
-                                    <select name="auditable_type" id="auditable_type" class="form-control">
-                                        <option value="">All Models</option>
-                                        <option value="App\Models\User" {{ request('auditable_type') == 'App\Models\User' ? 'selected' : '' }}>User</option>
-                                        <option value="App\Models\Book" {{ request('auditable_type') == 'App\Models\Book' ? 'selected' : '' }}>Book</option>
-                                        <option value="App\Models\Order" {{ request('auditable_type') == 'App\Models\Order' ? 'selected' : '' }}>Order</option>
-                                        <option value="App\Models\Review" {{ request('auditable_type') == 'App\Models\Review' ? 'selected' : '' }}>Review</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="date_from" class="form-label">Date From</label>
-                                    <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="date_to" class="form-label">Date To</label>
-                                    <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>&nbsp;</label>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search"></i> Apply Filters
-                                    </button>
-                                    <a href="{{ route('admin.audit.index') }}" class="btn btn-secondary ml-2">
-                                        <i class="fas fa-times"></i> Clear
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+{{-- Filter Form --}}
+<section class="bg-white rounded-2xl border border-brand-border shadow-xs p-5 mb-6" aria-label="Filter audit logs">
+    <form method="GET" action="{{ route('admin.audit.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 items-end">
+        <div class="lg:col-span-2">
+            <label for="search" class="block text-xs font-semibold text-brand-muted mb-1">Search IP, URL, or Agent</label>
+            <input type="search" name="search" id="search" value="{{ request('search') }}" placeholder="e.g. 127.0.0.1 or /books"
+                   class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
         </div>
-    </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-list"></i> Audit Log Entries</h5>
-                </div>
-                <div class="card-body">
-                    @if($audits->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>User</th>
-                                        <th>Event</th>
-                                        <th>Model</th>
-                                        <th>Model ID</th>
-                                        <th>IP Address</th>
-                                        <th>User Agent</th>
-                                        <th>Created</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($audits as $audit)
-                                        <tr>
-                                            <td>{{ $audit->id }}</td>
-                                            <td>
-                                                @if($audit->user)
-                                                    {{ $audit->user->name }}
-                                                @else
-                                                    <span class="text-muted">System</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-{{ $audit->event == 'created' ? 'success' : ($audit->event == 'updated' ? 'warning' : ($audit->event == 'deleted' ? 'danger' : 'info')) }}">
-                                                    {{ $audit->event }}
-                                                </span>
-                                            </td>
-                                            <td>{{ class_basename($audit->auditable_type) }}</td>
-                                            <td>{{ $audit->auditable_id ?? '-' }}</td>
-                                            <td>{{ $audit->ip_address }}</td>
-                                            <td>
-                                                <small class="text-muted">{{ Str::limit($audit->user_agent, 50) }}</small>
-                                            </td>
-                                            <td>{{ $audit->created_at->format('M j, Y H:i:s') }}</td>
-                                            <td>
-                                                <a href="{{ route('admin.audit.show', $audit->id) }}" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-eye"></i> View
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        {{ $audits->links() }}
-                    @else
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No audit logs found matching your criteria.
-                        </div>
-                    @endif
-                </div>
-            </div>
+        <div>
+            <label for="event" class="block text-xs font-semibold text-brand-muted mb-1">Event</label>
+            <select name="event" id="event" class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+                <option value="">All Events</option>
+                @foreach(['created', 'updated', 'deleted', 'login', 'logout'] as $ev)
+                    <option value="{{ $ev }}" @selected(request('event') === $ev)>{{ ucfirst($ev) }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label for="auditable_type" class="block text-xs font-semibold text-brand-muted mb-1">Model</label>
+            <select name="auditable_type" id="auditable_type" class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+                <option value="">All Models</option>
+                @foreach(['User', 'Book', 'Order', 'Review'] as $model)
+                    <option value="{{ $model }}" @selected(request('auditable_type') === $model)>{{ $model }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label for="date_from" class="block text-xs font-semibold text-brand-muted mb-1">From</label>
+            <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}" class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">Filter</button>
+            @if(request()->anyFilled(['search', 'event', 'auditable_type', 'date_from', 'date_to']))
+                <a href="{{ route('admin.audit.index') }}" class="px-3 py-2 rounded-lg border border-brand-border bg-white text-sm font-medium text-brand-ink hover:bg-brand-cream">Clear</a>
+            @endif
+        </div>
+    </form>
+</section>
+
+{{-- Audit Table --}}
+@if($audits->count() > 0)
+    <div class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-brand-border text-sm">
+                <thead class="bg-brand-cream/70">
+                    <tr>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">ID</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Actor</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Event</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Resource</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">IP Address</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Timestamp</th>
+                        <th scope="col" class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-brand-muted">Details</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-brand-border/70">
+                    @foreach($audits as $audit)
+                        <tr class="hover:bg-brand-paper/60 transition-colors">
+                            <td class="px-5 py-3.5 font-mono text-xs text-brand-muted">#{{ $audit->id }}</td>
+                            <td class="px-5 py-3.5 font-medium text-brand-ink">{{ $audit->user ? $audit->user->name : 'System' }}</td>
+                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                <x-badge :variant="match($audit->event) { 'created' => 'success', 'updated' => 'warning', 'deleted' => 'danger', default => 'info' }">
+                                    {{ ucfirst($audit->event) }}
+                                </x-badge>
+                            </td>
+                            <td class="px-5 py-3.5 whitespace-nowrap text-brand-ink">
+                                {{ class_basename($audit->auditable_type) }} <span class="text-xs font-mono text-brand-muted">#{{ $audit->auditable_id ?? '-' }}</span>
+                            </td>
+                            <td class="px-5 py-3.5 font-mono text-xs text-brand-muted">{{ $audit->ip_address }}</td>
+                            <td class="px-5 py-3.5 whitespace-nowrap text-xs text-brand-muted">{{ $audit->created_at->format('M j, Y H:i:s') }}</td>
+                            <td class="px-5 py-3.5 whitespace-nowrap text-right">
+                                <a href="{{ route('admin.audit.show', $audit->id) }}" class="text-xs font-semibold text-brand-darkgreen hover:text-brand-amber">Inspect &rarr;</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
+    <div class="mt-6">{{ $audits->withQueryString()->links() }}</div>
+@else
+    <x-empty-state title="No audit logs found" description="No recorded events match your current filter selection." />
+@endif
 @endsection

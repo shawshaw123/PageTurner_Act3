@@ -1,41 +1,47 @@
 @extends('layouts.app')
 
-@section('title', $category->name . ' - PageTurner')
+@section('title', $category->name . ' — PageTurner')
 
 @section('header')
-<div class="flex justify-between items-center">
-    <div>
-        <h1 class="text-3xl font-bold text-gray-900">{{ $category->name }}</h1>
-        <p class="text-gray-600 mt-2">{{ $category->description }}</p>
-    </div>
-    
+<x-page-header
+    :title="$category->name"
+    :subtitle="$category->description"
+    :breadcrumbs="[
+        ['label' => 'Home', 'url' => route('home')],
+        ['label' => 'Categories', 'url' => route('categories.index')],
+        ['label' => $category->name],
+    ]"
+>
     @auth
         @if(auth()->user()->isAdmin())
-            <div class="space-x-4">
-                <a href="{{ route('categories.edit', $category) }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition">
+            <x-slot:actions>
+                <a href="{{ route('categories.edit', $category) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-brand-border bg-white text-sm font-semibold text-brand-ink hover:bg-brand-cream transition-colors">
                     Edit Category
                 </a>
-            </div>
+            </x-slot:actions>
         @endif
     @endauth
-</div>
+</x-page-header>
 @endsection
 
 @section('content')
 @if($books->count() > 0)
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         @foreach($books as $book)
             <x-book-card :book="$book" />
         @endforeach
     </div>
-    
-    {{-- Pagination --}}
-    <div class="mt-8">
+
+    <div class="mt-10">
         {{ $books->withQueryString()->links() }}
     </div>
 @else
-    <x-alert type="info">
-        No books found in this category.
-    </x-alert>
+    <x-empty-state title="No books in {{ $category->name }}" description="There are currently no books listed under this category.">
+        <x-slot:action>
+            <a href="{{ route('books.index') }}" class="px-5 py-2.5 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
+                Browse All Books
+            </a>
+        </x-slot:action>
+    </x-empty-state>
 @endif
 @endsection

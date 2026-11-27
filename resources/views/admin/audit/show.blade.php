@@ -1,153 +1,115 @@
 @extends('layouts.app')
 
-@section('title', 'Audit Details - Admin')
+@section('title', 'Audit #' . $audit->id . ' — PageTurner Admin')
+
+@section('header')
+<x-page-header
+    :title="'Audit Event #' . $audit->id"
+    :subtitle="ucfirst($audit->event) . ' on ' . class_basename($audit->auditable_type) . ' #' . ($audit->auditable_id ?? 'N/A')"
+    :breadcrumbs="[
+        ['label' => 'Admin', 'url' => route('admin.dashboard')],
+        ['label' => 'Audit Logs', 'url' => route('admin.audit.index')],
+        ['label' => 'Event #' . $audit->id],
+    ]"
+>
+    <x-slot:actions>
+        <a href="{{ route('admin.audit.index') }}" class="px-4 py-2 rounded-lg border border-brand-border bg-white text-sm font-medium text-brand-ink hover:bg-brand-cream transition-colors">
+            &larr; Back to Logs
+        </a>
+    </x-slot:actions>
+</x-page-header>
+@endsection
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-0"><i class="fas fa-shield-alt text-primary"></i> Audit Details</h1>
-                    <p class="text-muted mb-0">Audit ID: {{ $audit->id }}</p>
-                </div>
-                <div>
-                    <a href="{{ route('admin.audit.index') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Logs
-                    </a>
-                </div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <section class="lg:col-span-5 bg-white rounded-2xl border border-brand-border shadow-xs p-6">
+        <h2 class="font-serif text-lg font-bold text-brand-ink mb-4">Event Context</h2>
+        <dl class="divide-y divide-brand-border/70 text-sm">
+            <div class="py-3 flex justify-between gap-4">
+                <dt class="text-brand-muted">Event</dt>
+                <dd>
+                    <x-badge :variant="match($audit->event) { 'created' => 'success', 'updated' => 'warning', 'deleted' => 'danger', default => 'info' }">
+                        {{ strtoupper($audit->event) }}
+                    </x-badge>
+                </dd>
             </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-5">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Event Context</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="40%">Event:</th>
-                                <td>
-                                    <span class="badge bg-{{ $audit->event == 'deleted' ? 'danger' : ($audit->event == 'created' ? 'success' : 'warning') }} font-weight-bold">
-                                        {{ strtoupper($audit->event) }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Model:</th>
-                                <td><code>{{ class_basename($audit->auditable_type) }}</code> (ID: {{ $audit->auditable_id }})</td>
-                            </tr>
-                            <tr>
-                                <th>User:</th>
-                                <td>
-                                    @if($audit->user)
-                                        <div class="d-flex align-items-center">
-                                            <img src="https://ui-avatars.com/api/?name={{ $audit->user->name }}&background=random" 
-                                                 class="rounded-circle me-2" width="24" height="24">
-                                            <span>{{ $audit->user->name }}</span>
-                                        </div>
-                                    @else
-                                        <span class="badge bg-secondary">System</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>IP Address:</th>
-                                <td><span class="badge bg-light text-dark border">{{ $audit->ip_address }}</span></td>
-                            </tr>
-                            <tr>
-                                <th>URL:</th>
-                                <td><small class="text-break">{{ $audit->url }}</small></td>
-                            </tr>
-                            <tr>
-                                <th>User Agent:</th>
-                                <td><small class="text-muted">{{ $audit->user_agent }}</small></td>
-                            </tr>
-                            <tr>
-                                <th>Recorded At:</th>
-                                <td>{{ $audit->created_at->format('M j, Y H:i:s') }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
+            <div class="py-3 flex justify-between gap-4">
+                <dt class="text-brand-muted">Model</dt>
+                <dd class="font-mono text-xs text-brand-ink">{{ class_basename($audit->auditable_type) }} (ID: {{ $audit->auditable_id }})</dd>
             </div>
-        </div>
+            <div class="py-3 flex justify-between gap-4">
+                <dt class="text-brand-muted">User</dt>
+                <dd class="font-medium text-brand-ink">{{ $audit->user ? $audit->user->name : 'System' }}</dd>
+            </div>
+            <div class="py-3 flex justify-between gap-4">
+                <dt class="text-brand-muted">IP Address</dt>
+                <dd class="font-mono text-xs text-brand-ink">{{ $audit->ip_address }}</dd>
+            </div>
+            <div class="py-3">
+                <dt class="text-brand-muted mb-1">URL</dt>
+                <dd class="font-mono text-xs text-brand-ink break-all">{{ $audit->url }}</dd>
+            </div>
+            <div class="py-3">
+                <dt class="text-brand-muted mb-1">User Agent</dt>
+                <dd class="text-xs text-brand-muted break-all">{{ $audit->user_agent }}</dd>
+            </div>
+            <div class="py-3 flex justify-between gap-4">
+                <dt class="text-brand-muted">Recorded At</dt>
+                <dd class="text-xs text-brand-ink">{{ $audit->created_at->format('M j, Y H:i:s') }}</dd>
+            </div>
+        </dl>
+    </section>
 
-        <div class="col-md-7">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-exchange-alt"></i> Changes Trail</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+    <section class="lg:col-span-7 bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-brand-border">
+            <h2 class="font-serif text-lg font-bold text-brand-ink">Changes Trail</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-brand-border text-sm">
+                <thead class="bg-brand-cream/70">
+                    <tr>
+                        <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Field</th>
+                        <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Previous</th>
+                        <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">New</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-brand-border/70">
+                    @forelse($changes as $field => $change)
+                        <tr>
+                            <td class="px-5 py-3 font-medium text-brand-ink whitespace-nowrap">{{ ucfirst(str_replace('_', ' ', $field)) }}</td>
+                            <td class="px-5 py-3 bg-red-50/50 text-red-700 font-mono text-xs line-through break-all">
+                                {{ is_array($change['old']) ? json_encode($change['old']) : (is_null($change['old']) ? 'NULL' : $change['old']) }}
+                            </td>
+                            <td class="px-5 py-3 bg-emerald-50/50 text-emerald-800 font-mono text-xs break-all">
+                                {{ is_array($change['new']) ? json_encode($change['new']) : (is_null($change['new']) ? 'NULL' : $change['new']) }}
+                            </td>
+                        </tr>
+                    @empty
+                        @if($audit->event === 'created')
+                            @foreach($newValues as $field => $value)
                                 <tr>
-                                    <th width="20%">Field</th>
-                                    <th width="40%">Old Value</th>
-                                    <th width="40%">New Value</th>
+                                    <td class="px-5 py-3 font-medium text-brand-ink">{{ ucfirst(str_replace('_', ' ', $field)) }}</td>
+                                    <td class="px-5 py-3 text-brand-muted">&mdash;</td>
+                                    <td class="px-5 py-3 text-emerald-800 font-mono text-xs break-all">{{ is_array($value) ? json_encode($value) : (is_null($value) ? 'NULL' : $value) }}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($changes as $field => $change)
-                                    <tr>
-                                        <td class="font-weight-bold">{{ ucfirst(str_replace('_', ' ', $field)) }}</td>
-                                        <td class="bg-light-danger">
-                                            <div class="text-danger strike-through">{{ is_array($change['old']) ? json_encode($change['old']) : (is_null($change['old']) ? 'NULL' : $change['old']) }}</div>
-                                        </td>
-                                        <td class="bg-light-success">
-                                            <div class="text-success">{{ is_array($change['new']) ? json_encode($change['new']) : (is_null($change['new']) ? 'NULL' : $change['new']) }}</div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    @if($audit->event == 'created')
-                                        @foreach($newValues as $field => $value)
-                                            <tr>
-                                                <td class="font-weight-bold text-muted">{{ ucfirst(str_replace('_', ' ', $field)) }}</td>
-                                                <td>-</td>
-                                                <td class="text-success">{{ is_array($value) ? json_encode($value) : (is_null($value) ? 'NULL' : $value) }}</td>
-                                            </tr>
-                                        @endforeach
-                                    @elseif($audit->event == 'deleted')
-                                        @foreach($oldValues as $field => $value)
-                                            <tr>
-                                                <td class="font-weight-bold text-muted">{{ ucfirst(str_replace('_', ' ', $field)) }}</td>
-                                                <td class="text-danger strike-through">{{ is_array($value) ? json_encode($value) : (is_null($value) ? 'NULL' : $value) }}</td>
-                                                <td>-</td>
-                                            </tr>
-                                        @endforeach
-                                    @else
-                                        <tr>
-                                            <td colspan="3" class="text-center py-4 text-muted">No data changes recorded for this event.</td>
-                                        </tr>
-                                    @endif
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                            @endforeach
+                        @elseif($audit->event === 'deleted')
+                            @foreach($oldValues as $field => $value)
+                                <tr>
+                                    <td class="px-5 py-3 font-medium text-brand-ink">{{ ucfirst(str_replace('_', ' ', $field)) }}</td>
+                                    <td class="px-5 py-3 text-red-700 font-mono text-xs line-through break-all">{{ is_array($value) ? json_encode($value) : (is_null($value) ? 'NULL' : $value) }}</td>
+                                    <td class="px-5 py-3 text-brand-muted">&mdash;</td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="3" class="px-5 py-8 text-center text-brand-muted">No attribute changes recorded for this event.</td>
+                            </tr>
+                        @endif
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    </div>
+    </section>
 </div>
-
-<style>
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-}
-.strike-through {
-    text-decoration: line-through;
-    opacity: 0.7;
-}
-.bg-light-danger {
-    background-color: rgba(231, 74, 59, 0.05);
-}
-.bg-light-success {
-    background-color: rgba(28, 200, 138, 0.05);
-}
-</style>
 @endsection
