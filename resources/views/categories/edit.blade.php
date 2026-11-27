@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Category — PageTurner')
+@section('title', 'Edit Category — LEBROn')
 
 @section('header')
 <x-page-header

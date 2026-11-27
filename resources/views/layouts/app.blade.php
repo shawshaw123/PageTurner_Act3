@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'PageTurner Bookstore')</title>
+    <title>@yield('title', 'LEBROn')</title>
 
     <!-- Fonts: Editorial Serif (Lora) + Clean UI Sans (Plus Jakarta Sans) -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -99,7 +99,7 @@
     @unless(request()->routeIs('ai.chat'))
         <a href="{{ route('ai.chat') }}"
            class="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-brand-darkgreen text-white pl-3.5 pr-4 py-2.5 shadow-lg border border-white/10 hover:bg-brand-forest transition-colors group"
-           aria-label="Open PageTurner AI Book Assistant">
+           aria-label="Open LEBROn AI Book Assistant">
             <span class="w-7 h-7 rounded-full bg-brand-gold/20 text-brand-gold flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>

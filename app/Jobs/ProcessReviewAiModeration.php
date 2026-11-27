@@ -33,7 +33,7 @@ class ProcessReviewAiModeration implements ShouldQueue
         Log::info("Starting background AI review moderation for review ID: {$this->review->id}");
 
         // Build prompt for AI moderation
-        $prompt = "You are an automated AI content moderator for PageTurner bookstore. 
+        $prompt = "You are an automated AI content moderator for LEBROn bookstore. 
 Analyze this customer review and respond with a raw JSON object.
 
 Review Comment: \"{$this->review->comment}\"

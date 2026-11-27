@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Payment - PageTurner')
+@section('title', 'Payment - LEBROn')
 
 @section('header')
 <h1 class="text-3xl font-bold text-gray-900">

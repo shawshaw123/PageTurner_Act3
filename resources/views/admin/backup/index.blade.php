@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Database Backups — PageTurner Admin')
+@section('title', 'Database Backups — LEBROn Admin')
 
 @section('header')
 <x-page-header

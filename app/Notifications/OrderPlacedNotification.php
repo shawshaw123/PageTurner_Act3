@@ -33,7 +33,7 @@ class OrderPlacedNotification extends Notification implements ShouldQueue
             ->line('Your order #' . $this->order->id . ' has been placed successfully.')
             ->line('Total Amount: ₱' . number_format($this->order->total_amount, 2))
             ->action('View Order', url('/orders/' . $this->order->id))
-            ->line('Thank you for shopping with PageTurner!');
+            ->line('Thank you for shopping with LEBROn!');
     }
 
     public function toArray(object $notifiable): array

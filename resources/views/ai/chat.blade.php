@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'PageTurner AI - Bookstore Assistant')
+@section('title', 'LEBROn AI - Book Assistant')
 
 @push('styles')
 <style>
@@ -511,7 +511,7 @@
         <div>
             <div class="sidebar-header">
                 <div class="sidebar-title">
-                    <span>📚</span> PageTurner AI
+                    <span>📚</span> LEBROn AI
                 </div>
                 <div class="sidebar-subtitle">
                     Smart Bookstore Assistant
@@ -546,7 +546,7 @@
             <div class="chat-header-left">
                 <div class="ai-avatar">🤖</div>
                 <div class="ai-info">
-                    <h2>PageTurner AI Assistant</h2>
+                    <h2>LEBROn AI Assistant</h2>
                     <p><span class="status-dot"></span>Online • Powered by OpenAI GPT-4o-mini <span id="demoModeBadge" style="display:none; margin-left:8px; background:#FFBF00; color:#31472E; padding:2px 8px; border-radius:4px; font-size:0.65rem; font-weight:700;">DEMO MODE</span></p>
                 </div>
             </div>
@@ -564,7 +564,7 @@
         <div class="chat-messages" id="chatMessages">
             <div class="welcome-msg" id="welcomeMsg">
                 <div class="welcome-icon">📚</div>
-                <h3>Hello! I'm your PageTurner AI Assistant</h3>
+                <h3>Hello! I'm your LEBROn AI Assistant</h3>
                 <p>I can help you find books, get recommendations, check stock, and answer any questions about our bookstore.</p>
                 <div class="quick-suggestions">
                     <button class="suggestion-chip" onclick="sendQuick('Recommend me a good fiction book')">📖 Recommend fiction</button>
@@ -597,7 +597,7 @@
                 <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
             </div>
             <div class="input-footer">
-                <span class="powered-by">PageTurner AI • Lab Activity 8</span>
+                <span class="powered-by">LEBROn AI • Lab Activity 8</span>
                 <span class="provider-badge" id="providerBadge">OpenAI GPT-4o-mini</span>
             </div>
         </div>

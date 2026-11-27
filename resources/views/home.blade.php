@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'PageTurner — Online Bookstore')
+@section('title', 'LEBROn — Online Book Marketplace')
 
 @section('content')
 {{-- Editorial Bookstore Hero --}}

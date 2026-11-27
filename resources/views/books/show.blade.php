@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $book->title . ' — PageTurner')
+@section('title', $book->title . ' — LEBROn')
 
 @php
     use App\Services\ImageService;

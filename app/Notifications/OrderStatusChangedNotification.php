@@ -36,7 +36,7 @@ class OrderStatusChangedNotification extends Notification implements ShouldQueue
             ->line('Previous Status: ' . ucfirst($this->oldStatus))
             ->line('New Status: ' . ucfirst($this->order->status))
             ->action('View Order', url('/orders/' . $this->order->id))
-            ->line('Thank you for shopping with PageTurner!');
+            ->line('Thank you for shopping with LEBROn!');
     }
 
     public function toArray(object $notifiable): array

@@ -20,7 +20,7 @@ class TwoFactorDisabledNotification extends Notification
         return (new MailMessage)
             ->subject('Two-Factor Authentication Disabled')
             ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('Two-factor authentication has been disabled on your PageTurner account.')
+            ->line('Two-factor authentication has been disabled on your LEBROn account.')
             ->line('Your account is now less secure. We recommend re-enabling 2FA.')
             ->line('If you did not make this change, please contact support immediately.')
             ->action('View Security Settings', url('/two-factor'));

@@ -19,7 +19,7 @@
 </head>
 <body>
     <header class="admin-bar">
-        <strong><span class="brand">Page</span>Turner · REST API (Swagger)</strong>
+        <strong>LEBR<span class="brand">On</span> · REST API (Swagger)</strong>
         <nav aria-label="Admin">
             <a href="{{ route('admin.dashboard') }}">&larr; Admin dashboard</a>
             <a href="{{ route('api-tokens.index') }}">API tokens</a>

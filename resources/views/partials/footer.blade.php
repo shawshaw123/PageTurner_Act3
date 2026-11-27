@@ -4,7 +4,7 @@
             <div class="sm:col-span-2 lg:col-span-1">
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-2">
                     <span class="w-8 h-8 rounded-lg bg-brand-gold text-brand-darkgreen flex items-center justify-center font-serif font-bold text-lg">P</span>
-                    <span class="font-serif text-xl font-bold text-white"><span class="text-brand-gold">Page</span>Turner</span>
+                    <span class="font-serif text-xl font-bold text-white">LEBR<span class="text-brand-gold">On</span></span>
                 </a>
                 <p class="mt-3 text-sm text-white/70 leading-relaxed">
                     A curated online bookstore connecting readers with independent sellers, timeless literature, and modern non-fiction.
@@ -47,7 +47,7 @@
         </div>
 
         <div class="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/60">
-            <p>&copy; {{ date('Y') }} PageTurner Bookstore. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} LEBROn. All rights reserved.</p>
             <p>Crafted for readers and independent booksellers.</p>
         </div>
     </div>

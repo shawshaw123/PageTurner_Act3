@@ -169,9 +169,9 @@ class TwoFactorController extends Controller
         Cache::put("2fa_code_{$userId}", $code, now()->addMinutes(10));
 
         // Send code via email
-        Mail::raw("Your PageTurner 2FA verification code is: {$code}\n\nThis code expires in 10 minutes.", function ($message) use ($user) {
+        Mail::raw("Your LEBROn 2FA verification code is: {$code}\n\nThis code expires in 10 minutes.", function ($message) use ($user) {
             $message->to($user->email)
-                    ->subject('PageTurner - Two-Factor Authentication Code');
+                    ->subject('LEBROn - Two-Factor Authentication Code');
         });
 
         return back()->with('success', 'A new verification code has been sent to your email.');

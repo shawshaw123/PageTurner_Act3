@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'PageTurner Bookstore') }}</title>
+    <title>{{ config('app.name', 'LEBROn') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -45,7 +45,7 @@
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 group">
                 <span class="w-10 h-10 rounded-xl bg-brand-darkgreen text-brand-gold flex items-center justify-center font-serif font-bold text-xl shadow-sm">P</span>
                 <span class="font-serif text-3xl font-bold tracking-tight text-brand-darkgreen">
-                    <span class="text-brand-amber">Page</span>Turner
+                    LEBR<span class="text-brand-amber">On</span>
                 </span>
             </a>
             <p class="mt-2 text-sm text-brand-muted">Your neighborhood bookstore, online.</p>

@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
         <h1 class="font-serif text-2xl font-bold text-brand-ink">Sign in</h1>
-        <p class="text-sm text-brand-muted mt-1">Welcome back to PageTurner Bookstore.</p>
+        <p class="text-sm text-brand-muted mt-1">Welcome back to LEBROn.</p>
     </div>
 
     @if(session('status'))
@@ -52,7 +52,7 @@
     @include('auth.partials.google-button', ['label' => 'Sign in with Google'])
 
     <p class="mt-6 text-center text-sm text-brand-muted">
-        New to PageTurner?
+        New to LEBROn?
         <a href="{{ route('register') }}" class="font-semibold text-brand-darkgreen hover:text-brand-amber">Create an account</a>
     </p>
 </x-guest-layout>

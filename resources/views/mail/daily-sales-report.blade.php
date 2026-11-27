@@ -123,8 +123,8 @@
     </div>
     
     <div class="footer">
-        <p>This is an automated daily sales report from PageTurner Bookstore.</p>
-        <p>© {{ date('Y') }} PageTurner Bookstore. All rights reserved.</p>
+        <p>This is an automated daily sales report from LEBROn.</p>
+        <p>© {{ date('Y') }} LEBROn. All rights reserved.</p>
     </div>
 </body>
 </html>

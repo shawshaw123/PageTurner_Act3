@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'API Tokens — PageTurner')
+@section('title', 'API Tokens — LEBROn')
 
 @section('header')
 <x-page-header
     title="API Tokens"
-    subtitle="Create personal access tokens to authenticate with the PageTurner REST API."
+    subtitle="Create personal access tokens to authenticate with the LEBROn REST API."
     :breadcrumbs="[
         ['label' => 'Home', 'url' => route('home')],
         ['label' => 'API Tokens'],

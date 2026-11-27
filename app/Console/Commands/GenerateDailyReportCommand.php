@@ -157,7 +157,7 @@ class GenerateDailyReportCommand extends Command
         $html .= ".stats{display:flex;gap:20px;flex-wrap:wrap;} .stat-box{background:#f9f9f9;padding:15px;border-radius:5px;min-width:200px;} ";
         $html .= "h2{color:#333;} h3{color:#666;} .stat-value{font-size:24px;font-weight:bold;color:#007bff;}</style></head><body>";
         
-        $html .= "<div class='header'><h1>PageTurner Daily Report</h1><p>Date: {$data['report_date']}</p></div>";
+        $html .= "<div class='header'><h1>LEBROn Daily Report</h1><p>Date: {$data['report_date']}</p></div>";
         
         // Sales Section
         $html .= "<div class='section'><h2>Sales Overview</h2><div class='stats'>";

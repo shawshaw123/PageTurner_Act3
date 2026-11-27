@@ -269,7 +269,7 @@ class AIServiceManager
     {
         // Check for common queries and provide relevant responses
         if (str_contains($prompt, 'hello') || str_contains($prompt, 'hi') || str_contains($prompt, 'hey')) {
-            return "Hello! I'm your PageTurner AI Assistant. How can I help you find books today?";
+            return "Hello! I'm your LEBROn AI Assistant. How can I help you find books today?";
         }
 
         // Fiction/Novel queries

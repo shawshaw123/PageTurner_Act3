@@ -41,7 +41,7 @@ class ReviewStatusUpdated extends Notification implements ShouldQueue
             ->line('• Your Comment: ' . ($this->review->comment ?: 'No comment provided'))
             ->line('• Status: <span style="color: ' . $statusColor . '; font-weight: bold;">' . $statusText . '</span>')
             ->action('View Your Review', route('books.show', $this->review->book))
-            ->line('Thank you for contributing to the PageTurner Bookstore!');
+            ->line('Thank you for contributing to the LEBROn!');
     }
 
     public function toDatabase($notifiable)

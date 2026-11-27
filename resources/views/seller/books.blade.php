@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My Listings — PageTurner')
+@section('title', 'My Listings — LEBROn')
 
 @section('header')
 <x-page-header
@@ -36,7 +36,7 @@
         $emptyTitle = request('search') ? 'No matching listings' : 'No book listings yet';
         $emptyDescription = request('search')
             ? 'No listings match "' . request('search') . '".'
-            : 'Add your first book listing to start selling on PageTurner.';
+            : 'Add your first book listing to start selling on LEBROn.';
     @endphp
     <x-empty-state :title="$emptyTitle" :description="$emptyDescription">
         <x-slot:action>

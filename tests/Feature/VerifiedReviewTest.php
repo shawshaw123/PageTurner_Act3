@@ -65,7 +65,7 @@ class VerifiedReviewTest extends TestCase
 
     public function test_book_page_shows_the_form_only_to_verified_buyers(): void
     {
-        $this->actingAs($this->buyer)->get(route('books.show', $this->book))->assertSee('Only buyers who received this book can review it');
+        $this->actingAs($this->buyer)->get(route('books.show', $this->book))->assertSee('Only buyers who have received this book can leave a review');
 
         $this->orderWithBook('shipped');
         $this->actingAs($this->buyer)->get(route('books.show', $this->book))->assertSee('Submit Review');

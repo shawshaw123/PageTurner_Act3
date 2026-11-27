@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Order #' . $order->id . ' — PageTurner')
+@section('title', 'Order #' . $order->id . ' — LEBROn')
 
 @section('header')
 <x-page-header

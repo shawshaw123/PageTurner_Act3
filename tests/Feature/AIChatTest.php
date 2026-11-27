@@ -82,7 +82,7 @@ class AIChatTest extends TestCase
     {
         $response = $this->actingAs($this->user)->get(route('ai.chat'));
         $response->assertStatus(200);
-        $response->assertSee('PageTurner AI');
+        $response->assertSee('LEBROn AI');
     }
 
     /**

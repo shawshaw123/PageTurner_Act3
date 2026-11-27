@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Backup #' . $backup->id . ' — PageTurner Admin')
+@section('title', 'Backup #' . $backup->id . ' — LEBROn Admin')
 
 @section('header')
 <x-page-header

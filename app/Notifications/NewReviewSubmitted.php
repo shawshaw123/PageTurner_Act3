@@ -36,7 +36,7 @@ class NewReviewSubmitted extends Notification implements ShouldQueue
             ->line('• Rating: ' . $this->review->rating . ' stars')
             ->line('• Comment: ' . ($this->review->comment ?: 'No comment provided'))
             ->action('View Review', route('books.show', $this->review->book))
-            ->line('Thank you for managing the PageTurner Bookstore!');
+            ->line('Thank you for managing the LEBROn!');
     }
 
     public function toDatabase($notifiable)

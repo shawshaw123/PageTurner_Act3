@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Import #' . $import->id . ' — PageTurner Admin')
+@section('title', 'Import #' . $import->id . ' — LEBROn Admin')
 
 @section('header')
 <x-page-header

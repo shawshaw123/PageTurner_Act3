@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $category->name . ' — PageTurner')
+@section('title', $category->name . ' — LEBROn')
 
 @section('header')
 <x-page-header

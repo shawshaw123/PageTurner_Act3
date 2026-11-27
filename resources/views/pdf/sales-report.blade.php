@@ -91,7 +91,7 @@
     <div class="header">
         <div class="two-column">
             <div class="column">
-                <div class="logo">PageTurner Bookstore</div>
+                <div class="logo">LEBROn</div>
                 <div>123 Book Street</div>
                 <div>Literary City, LC 12345</div>
                 <div>Phone: (555) 123-4567</div>
@@ -184,10 +184,10 @@
     </div>
 
     <div class="footer">
-        <div><strong>PageTurner Bookstore Sales Report</strong></div>
+        <div><strong>LEBROn Sales Report</strong></div>
         <div>This is a computer-generated report.</div>
         <div>Generated on {{ now()->format('F j, Y g:i A') }}</div>
-        <div>© {{ date('Y') }} PageTurner Bookstore</div>
+        <div>© {{ date('Y') }} LEBROn</div>
     </div>
 </body>
 </html>

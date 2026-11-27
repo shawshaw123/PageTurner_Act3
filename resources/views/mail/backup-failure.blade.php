@@ -92,7 +92,7 @@
         </div>
         
         <h2>Backup Failure Alert</h2>
-        <p>The {{ $backup->backup_type }} backup for PageTurner Bookstore has failed. Please investigate this issue immediately.</p>
+        <p>The {{ $backup->backup_type }} backup for LEBROn has failed. Please investigate this issue immediately.</p>
         
         <div class="error-details">
             <h3>⚠️ Immediate Action Required</h3>
@@ -146,8 +146,8 @@
     </div>
     
     <div class="footer">
-        <p>This is an automated notification from PageTurner Bookstore Backup System.</p>
-        <p>© {{ date('Y') }} PageTurner Bookstore. All rights reserved.</p>
+        <p>This is an automated notification from LEBROn Backup System.</p>
+        <p>© {{ date('Y') }} LEBROn. All rights reserved.</p>
     </div>
 </body>
 </html>

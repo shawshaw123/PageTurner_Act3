@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Two-Factor Authentication - PageTurner')
+@section('title', 'Two-Factor Authentication - LEBROn')
 
 @section('header')
 <h1 class="text-3xl font-bold text-gray-900">Two-Factor Authentication</h1>

@@ -490,7 +490,7 @@ class Lab7Validation extends Command
 
         if ($failed === 0) {
             $this->info('  ALL LAB 7 REQUIREMENTS SATISFIED!');
-            $this->info('  PageTurner Bookstore is enterprise-ready!');
+            $this->info('  LEBROn is enterprise-ready!');
         } else {
             $this->warn("  $failed requirement(s) not met. Review failed tests above.");
         }

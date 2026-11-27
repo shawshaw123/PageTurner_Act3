@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'API Rate Limits — PageTurner Admin')
+@section('title', 'API Rate Limits — LEBROn Admin')
 
 @section('header')
 <x-page-header

@@ -77,7 +77,7 @@
     <div class="header">
         <div class="two-column">
             <div class="column">
-                <div class="logo">PageTurner Bookstore</div>
+                <div class="logo">LEBROn</div>
                 <div>123 Book Street</div>
                 <div>Literary City, LC 12345</div>
                 <div>Phone: (555) 123-4567</div>
@@ -185,7 +185,7 @@
         <div><strong>Thank you for your order!</strong></div>
         <div>This is a computer-generated invoice and does not require a signature.</div>
         <div>For questions about this invoice, please contact our customer service.</div>
-        <div>PageTurner Bookstore © {{ date('Y') }}</div>
+        <div>LEBROn © {{ date('Y') }}</div>
     </div>
 </body>
 </html>

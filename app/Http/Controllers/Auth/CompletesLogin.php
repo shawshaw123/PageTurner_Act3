@@ -27,8 +27,8 @@ trait CompletesLogin
             $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             Cache::put("2fa_code_{$user->id}", $code, now()->addMinutes(10));
 
-            Mail::raw("Your PageTurner 2FA verification code is: {$code}\n\nThis code expires in 10 minutes.", function ($message) use ($user) {
-                $message->to($user->email)->subject('PageTurner - Two-Factor Authentication Code');
+            Mail::raw("Your LEBROn 2FA verification code is: {$code}\n\nThis code expires in 10 minutes.", function ($message) use ($user) {
+                $message->to($user->email)->subject('LEBROn - Two-Factor Authentication Code');
             });
 
             return redirect()->route('two-factor.challenge');

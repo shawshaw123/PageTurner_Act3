@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Data Portability — PageTurner')
+@section('title', 'Data Portability — LEBROn')
 
 @section('header')
 <x-page-header

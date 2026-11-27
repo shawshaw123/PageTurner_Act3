@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Track Order - PageTurner')
+@section('title', 'Track Order - LEBROn')
 
 @section('header')
 <h1 class="text-3xl font-bold text-gray-900">Order Tracking: #{{ $order->id }}</h1>
@@ -64,7 +64,7 @@
                 </div>
                 <div class="flex justify-between border-t border-gray-200 pt-4">
                     <span class="text-gray-500">Shipping Service</span>
-                    <span class="font-medium text-gray-800">PageTurner Express</span>
+                    <span class="font-medium text-gray-800">LEBROn Express</span>
                 </div>
                 <div class="flex justify-between border-t border-gray-200 pt-4">
                     <span class="text-gray-500">Shipping Address</span>

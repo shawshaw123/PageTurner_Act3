@@ -22,7 +22,7 @@
                         P
                     </span>
                     <span class="font-serif text-xl font-bold tracking-tight">
-                        <span class="text-brand-gold">Page</span><span class="text-white">Turner</span>
+                        <span class="text-white">LEBR</span><span class="text-brand-gold">On</span>
                     </span>
                 </a>
 

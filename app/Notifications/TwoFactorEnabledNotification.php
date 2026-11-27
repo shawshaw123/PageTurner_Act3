@@ -20,7 +20,7 @@ class TwoFactorEnabledNotification extends Notification
         return (new MailMessage)
             ->subject('Two-Factor Authentication Enabled')
             ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('Two-factor authentication has been enabled on your PageTurner account.')
+            ->line('Two-factor authentication has been enabled on your LEBROn account.')
             ->line('You will now need to enter a verification code each time you log in.')
             ->line('If you did not make this change, please contact support immediately.')
             ->action('View Security Settings', url('/two-factor'));

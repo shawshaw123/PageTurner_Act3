@@ -1,4 +1,4 @@
-# PageTurner Online Bookstore Management System
+# LEBROn: An Online Marketplace and Sales Management System for Books
 
 ## Laboratory Activity 7: Mass Data Seeding, Performance Optimization, and Scalability Engineering
 

@@ -68,7 +68,7 @@
         </div>
         
         <h2>Backup Summary</h2>
-        <p>The {{ $backup->backup_type }} backup for PageTurner Bookstore has been completed successfully.</p>
+        <p>The {{ $backup->backup_type }} backup for LEBROn has been completed successfully.</p>
         
         <div class="stats">
             <div class="stat-item">
@@ -114,8 +114,8 @@
     </div>
     
     <div class="footer">
-        <p>This is an automated notification from PageTurner Bookstore Backup System.</p>
-        <p>© {{ date('Y') }} PageTurner Bookstore. All rights reserved.</p>
+        <p>This is an automated notification from LEBROn Backup System.</p>
+        <p>© {{ date('Y') }} LEBROn. All rights reserved.</p>
     </div>
 </body>
 </html>
