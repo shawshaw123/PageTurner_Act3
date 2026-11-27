@@ -161,12 +161,12 @@ class ApiTest extends TestCase
             'category_id' => $this->category->id,
             'title' => 'Noli Me Tangere',
             'author' => 'Jose Rizal',
-            'isbn' => '9789710810736',
+            'isbn' => '9780140449136',
             'price' => 350,
             'stock_quantity' => 5,
         ])->assertCreated()->assertJsonPath('data.seller.id', $seller->id);
 
-        $this->assertDatabaseHas('books', ['isbn' => '9789710810736', 'seller_id' => $seller->id]);
+        $this->assertDatabaseHas('books', ['isbn' => '9780140449136', 'seller_id' => $seller->id]);
     }
 
     public function test_buyer_cannot_create_listing_via_api(): void

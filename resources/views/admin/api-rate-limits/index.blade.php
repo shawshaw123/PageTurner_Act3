@@ -1,246 +1,147 @@
 @extends('layouts.app')
 
-@section('title', 'API Rate Limits - Admin')
+@section('title', 'API Rate Limits — PageTurner Admin')
+
+@section('header')
+<x-page-header
+    title="API Rate Limits"
+    subtitle="Monitor endpoint consumption, inspect throttled traffic, and manage user or IP limits."
+    :breadcrumbs="[
+        ['label' => 'Admin', 'url' => route('admin.dashboard')],
+        ['label' => 'API Rate Limits'],
+    ]"
+>
+    <x-slot:actions>
+        <button type="button" onclick="location.reload()" class="px-4 py-2 rounded-lg border border-brand-border bg-white text-sm font-medium text-brand-ink hover:bg-brand-cream transition-colors">
+            Refresh
+        </button>
+    </x-slot:actions>
+</x-page-header>
+@endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1><i class="fas fa-tachometer-alt"></i> API Rate Limits</h1>
-                <div>
-                    <form action="{{ route('admin.api-rate-limits.export') }}" method="GET" class="d-inline">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-download"></i> Export Data
-                        </button>
-                    </form>
-                    <a href="{{ route('admin.api-rate-limits.statistics') }}" class="btn btn-info ml-2">
-                        <i class="fas fa-chart-bar"></i> Statistics
-                    </a>
-                    <button onclick="location.reload()" class="btn btn-secondary ml-2">
-                        <i class="fas fa-sync"></i> Refresh
-                    </button>
-                </div>
-            </div>
+{{-- Filters --}}
+<section class="bg-white rounded-2xl border border-brand-border shadow-xs p-5 mb-6" aria-label="Filter API rate limits">
+    <form method="GET" action="{{ route('admin.api-rate-limits.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 items-end">
+        <div>
+            <label for="identifier_type" class="block text-xs font-semibold text-brand-muted mb-1">Identifier Type</label>
+            <select name="identifier_type" id="identifier_type" class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+                <option value="">All Types</option>
+                <option value="user" @selected(request('identifier_type') === 'user')>User</option>
+                <option value="ip" @selected(request('identifier_type') === 'ip')>IP Address</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="tier" class="block text-xs font-semibold text-brand-muted mb-1">Tier</label>
+            <select name="tier" id="tier" class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+                <option value="">All Tiers</option>
+                @foreach(['public', 'auth', 'standard', 'premium', 'admin'] as $tier)
+                    <option value="{{ $tier }}" @selected(request('tier') === $tier)>{{ ucfirst($tier) }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label for="endpoint" class="block text-xs font-semibold text-brand-muted mb-1">Endpoint</label>
+            <input type="text" name="endpoint" id="endpoint" value="{{ request('endpoint') }}" placeholder="/api/books"
+                   class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+        </div>
+
+        <div>
+            <label for="show_hits_only" class="block text-xs font-semibold text-brand-muted mb-1">Traffic Scope</label>
+            <select name="show_hits_only" id="show_hits_only" class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+                <option value="">All Requests</option>
+                <option value="1" @selected(request('show_hits_only') == '1')>Limit Hits Only</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="date_from" class="block text-xs font-semibold text-brand-muted mb-1">From Date</label>
+            <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}" class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">Apply</button>
+            @if(request()->anyFilled(['identifier_type', 'tier', 'endpoint', 'show_hits_only', 'date_from', 'date_to']))
+                <a href="{{ route('admin.api-rate-limits.index') }}" class="px-3 py-2 rounded-lg border border-brand-border bg-white text-sm font-medium text-brand-ink hover:bg-brand-cream">Clear</a>
+            @endif
+        </div>
+    </form>
+</section>
+
+{{-- Rate Limits Table --}}
+@if($rateLimits->count() > 0)
+    <div class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-brand-border text-sm">
+                <thead class="bg-brand-cream/70">
+                    <tr>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Identifier</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Endpoint</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Tier</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Usage</th>
+                        <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Window</th>
+                        <th scope="col" class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-brand-muted">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-brand-border/70">
+                    @foreach($rateLimits as $rateLimit)
+                        @php
+                            $usagePercent = $rateLimit->limit > 0 ? ($rateLimit->requests_count / $rateLimit->limit) * 100 : 0;
+                        @endphp
+                        <tr class="hover:bg-brand-paper/60 transition-colors">
+                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                <span class="font-mono text-xs font-semibold text-brand-ink">{{ $rateLimit->identifier }}</span>
+                                <x-badge variant="neutral" class="ml-1.5">{{ $rateLimit->identifier_type }}</x-badge>
+                            </td>
+                            <td class="px-5 py-3.5 font-mono text-xs text-brand-muted">{{ $rateLimit->endpoint }}</td>
+                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                <x-badge :variant="match($rateLimit->tier) { 'admin' => 'danger', 'premium' => 'warning', 'standard' => 'success', default => 'neutral' }">
+                                    {{ ucfirst($rateLimit->tier) }}
+                                </x-badge>
+                            </td>
+                            <td class="px-5 py-3.5 min-w-[170px]">
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-mono text-brand-ink">{{ number_format($rateLimit->requests_count) }} / {{ number_format($rateLimit->limit) }}</span>
+                                    <span class="font-semibold {{ $usagePercent >= 90 ? 'text-red-600' : ($usagePercent >= 70 ? 'text-amber-600' : 'text-emerald-700') }}">{{ round($usagePercent, 1) }}%</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-stone-100 overflow-hidden">
+                                    <div class="h-full rounded-full {{ $usagePercent >= 90 ? 'bg-red-500' : ($usagePercent >= 70 ? 'bg-amber-500' : 'bg-emerald-500') }}" style="width: {{ min($usagePercent, 100) }}%"></div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-3.5 whitespace-nowrap text-xs text-brand-muted">{{ $rateLimit->window_start->format('M j, Y H:i') }}</td>
+                            <td class="px-5 py-3.5 whitespace-nowrap text-right space-x-1.5">
+                                @if($rateLimit->identifier_type === 'user')
+                                    <form action="{{ route('admin.api-rate-limits.clearUser', $rateLimit->identifier) }}" method="POST" class="inline" data-confirm="Clear the API rate limit for user #{{ $rateLimit->identifier }}?">
+                                        @csrf
+                                        <button type="submit" class="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-cream">Clear</button>
+                                    </form>
+                                    <form action="{{ route('admin.api-rate-limits.blockUser', $rateLimit->identifier) }}" method="POST" class="inline" data-confirm="Block user #{{ $rateLimit->identifier }} from API access for 60 minutes?">
+                                        @csrf
+                                        <input type="hidden" name="duration_minutes" value="60">
+                                        <button type="submit" class="px-2.5 py-1 rounded-md bg-red-50 text-red-700 border border-red-200 text-xs font-semibold hover:bg-red-100">Block</button>
+                                    </form>
+                                @elseif($rateLimit->identifier_type === 'ip')
+                                    <form action="{{ route('admin.api-rate-limits.clearIp', $rateLimit->identifier) }}" method="POST" class="inline" data-confirm="Clear the API rate limit for IP {{ $rateLimit->identifier }}?">
+                                        @csrf
+                                        <button type="submit" class="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-cream">Clear</button>
+                                    </form>
+                                    <form action="{{ route('admin.api-rate-limits.blockIp', $rateLimit->identifier) }}" method="POST" class="inline" data-confirm="Block IP {{ $rateLimit->identifier }} from API access for 60 minutes?">
+                                        @csrf
+                                        <input type="hidden" name="duration_minutes" value="60">
+                                        <button type="submit" class="px-2.5 py-1 rounded-md bg-red-50 text-red-700 border border-red-200 text-xs font-semibold hover:bg-red-100">Block</button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-filter"></i> Filter Rate Limits</h5>
-                </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ route('admin.api-rate-limits.index') }}">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="identifier_type" class="form-label">Identifier Type</label>
-                                    <select name="identifier_type" id="identifier_type" class="form-control">
-                                        <option value="">All Types</option>
-                                        <option value="user" {{ request('identifier_type') == 'user' ? 'selected' : '' }}>User</option>
-                                        <option value="ip" {{ request('identifier_type') == 'ip' ? 'selected' : '' }}>IP Address</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="tier" class="form-label">Tier</label>
-                                    <select name="tier" id="tier" class="form-control">
-                                        <option value="">All Tiers</option>
-                                        <option value="public" {{ request('tier') == 'public' ? 'selected' : '' }}>Public</option>
-                                        <option value="auth" {{ request('tier') == 'auth' ? 'selected' : '' }}>Auth</option>
-                                        <option value="standard" {{ request('tier') == 'standard' ? 'selected' : '' }}>Standard</option>
-                                        <option value="premium" {{ request('tier') == 'premium' ? 'selected' : '' }}>Premium</option>
-                                        <option value="admin" {{ request('tier') == 'admin' ? 'selected' : '' }}>Admin</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="endpoint" class="form-label">Endpoint</label>
-                                    <input type="text" name="endpoint" id="endpoint" class="form-control" value="{{ request('endpoint') }}" placeholder="e.g., /api/books">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="show_hits_only" class="form-label">Show Hits Only</label>
-                                    <select name="show_hits_only" id="show_hits_only" class="form-control">
-                                        <option value="">All Requests</option>
-                                        <option value="1" {{ request('show_hits_only') == '1' ? 'selected' : '' }}>Rate Limit Hits Only</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="date_from" class="form-label">Date From</label>
-                                    <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="date_to" class="form-label">Date To</label>
-                                    <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i> Apply Filters
-                                </button>
-                                <a href="{{ route('admin.api-rate-limits.index') }}" class="btn btn-secondary ml-2">
-                                    <i class="fas fa-times"></i> Clear
-                                </a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-list"></i> Rate Limit Entries</h5>
-                </div>
-                <div class="card-body">
-                    @if($rateLimits->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Identifier</th>
-                                        <th>Type</th>
-                                        <th>Endpoint</th>
-                                        <th>Tier</th>
-                                        <th>Requests</th>
-                                        <th>Limit</th>
-                                        <th>Usage</th>
-                                        <th>Window Start</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($rateLimits as $rateLimit)
-                                        <tr>
-                                            <td>{{ $rateLimit->identifier }}</td>
-                                            <td>
-                                                <span class="badge bg-info">{{ $rateLimit->identifier_type }}</span>
-                                            </td>
-                                            <td>
-                                                <small>{{ $rateLimit->endpoint }}</small>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-{{ $rateLimit->tier == 'admin' ? 'danger' : ($rateLimit->tier == 'premium' ? 'warning' : ($rateLimit->tier == 'standard' ? 'success' : 'secondary')) }}">
-                                                    {{ $rateLimit->tier }}
-                                                </span>
-                                            </td>
-                                            <td>{{ number_format($rateLimit->requests_count) }}</td>
-                                            <td>{{ number_format($rateLimit->limit) }}</td>
-                                            <td>
-                                                @php
-                                                    $usagePercent = $rateLimit->limit > 0 ? ($rateLimit->requests_count / $rateLimit->limit) * 100 : 0;
-                                                @endphp
-                                                <div class="progress" style="height: 20px;">
-                                                    <div class="progress-bar bg-{{ $usagePercent >= 90 ? 'danger' : ($usagePercent >= 70 ? 'warning' : 'success') }}" 
-                                                         role="progressbar" 
-                                                         style="width: {{ min($usagePercent, 100) }}%">
-                                                        {{ round($usagePercent, 1) }}%
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{{ $rateLimit->window_start->format('M j, Y H:i:s') }}</td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    @if($rateLimit->identifier_type == 'user')
-                                                        <button onclick="confirmClearUserLimit({{ $rateLimit->identifier }})" class="btn btn-sm btn-warning">
-                                                            <i class="fas fa-eraser"></i> Clear
-                                                        </button>
-                                                        <button onclick="confirmBlockUser({{ $rateLimit->identifier }})" class="btn btn-sm btn-danger">
-                                                            <i class="fas fa-ban"></i> Block
-                                                        </button>
-                                                    @endif
-                                                    
-                                                    @if($rateLimit->identifier_type == 'ip')
-                                                        <button onclick="confirmClearIpLimit('{{ $rateLimit->identifier }}')" class="btn btn-sm btn-warning">
-                                                            <i class="fas fa-eraser"></i> Clear
-                                                        </button>
-                                                        <button onclick="confirmBlockIp('{{ $rateLimit->identifier }}')" class="btn btn-sm btn-danger">
-                                                            <i class="fas fa-ban"></i> Block
-                                                        </button>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        {{ $rateLimits->links() }}
-                    @else
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No rate limit entries found matching your criteria.
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-function confirmClearUserLimit(userId) {
-    if (confirm('Are you sure you want to clear the rate limit for this user?')) {
-        fetch(`/admin/api-rate-limits/clear-user/${userId}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function confirmBlockUser(userId) {
-    if (confirm('Are you sure you want to block this user from API access?')) {
-        fetch(`/admin/api-rate-limits/block-user/${userId}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function confirmClearIpLimit(ip) {
-    if (confirm('Are you sure you want to clear the rate limit for this IP address?')) {
-        fetch(`/admin/api-rate-limits/clear-ip/${ip}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function confirmBlockIp(ip) {
-    if (confirm('Are you sure you want to block this IP address from API access?')) {
-        fetch(`/admin/api-rate-limits/block-ip/${ip}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-</script>
+    <div class="mt-6">{{ $rateLimits->withQueryString()->links() }}</div>
+@else
+    <x-empty-state title="No rate limit entries" description="No API rate limit records match your current filters." />
+@endif
 @endsection

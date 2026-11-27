@@ -1,167 +1,140 @@
 @extends('layouts.app')
 
-@section('title', 'Checkout')
+@section('title', 'Checkout — PageTurner')
+
+@section('header')
+<x-page-header
+    title="Checkout"
+    subtitle="Confirm your items, enter your shipping address, and choose a payment method."
+    :breadcrumbs="[
+        ['label' => 'Home', 'url' => route('home')],
+        ['label' => 'Cart', 'url' => route('cart.index')],
+        ['label' => 'Checkout'],
+    ]"
+/>
+@endsection
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Checkout</h1>
-        <p class="text-gray-600 mt-2">Review your order and provide shipping information</p>
-    </div>
+<form action="{{ route('cart.process') }}" method="POST" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    @csrf
 
-    <form action="{{ route('cart.process') }}" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        @csrf
-
-        <!-- Order Items & Shipping Form -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Order Items -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Items</h2>
-                
-                <div class="space-y-4">
-                    @foreach($cartItems as $item)
-                        <div class="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
-                            <div class="flex items-center space-x-4">
-                                <!-- Book Cover -->
-                                <div class="flex-shrink-0">
-                                    @if($item['book']->cover_image)
-                                        <img src="{{ asset('storage/' . $item['book']->cover_image) }}" alt="{{ $item['book']->title }}" class="w-12 h-16 object-cover rounded">
-                                    @else
-                                        <div class="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                            </svg>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <!-- Book Details -->
-                                <div>
-                                    <h4 class="font-medium text-gray-900">{{ $item['book']->title }}</h4>
-                                    <p class="text-sm text-gray-500">{{ $item['book']->author }}</p>
-                                    <p class="text-sm text-gray-600 mt-1">
-                                        Qty: {{ $item['quantity'] }} × ₱{{ number_format($item['book']->price, 2) }}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="text-right">
-                                <p class="font-semibold text-gray-900">₱{{ number_format($item['subtotal'], 2) }}</p>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
+    <div class="lg:col-span-8 space-y-6">
+        <!-- Order Items -->
+        <section class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+            <div class="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+                <h2 class="font-serif text-lg font-bold text-brand-ink">1. Order Items</h2>
+                <a href="{{ route('cart.index') }}" class="text-xs font-semibold text-brand-darkgreen hover:text-brand-amber">Edit Cart</a>
             </div>
-
-            <!-- Shipping Information -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Shipping Information</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                        <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-2">
-                            Shipping Address <span class="text-red-500">*</span>
-                        </label>
-                        <textarea 
-                            id="shipping_address" 
-                            name="shipping_address" 
-                            rows="3" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-darkgreen focus:border-brand-darkgreen"
-                            placeholder="123 Main St, Apt 4B, New York, NY 10001"
-                            required
-                        >{{ auth()->user()->name ?? '' }}</textarea>
-                        @error('shipping_address')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment Method -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Method</h2>
-                
-                <div class="space-y-3">
-                    @php $onlinePayment = app(\App\Integrations\PayMongo\PaymentService::class)->isConfigured(); @endphp
-                    <label class="flex items-center p-3 border border-gray-200 rounded-md {{ $onlinePayment ? 'cursor-pointer hover:bg-gray-50' : 'opacity-60 cursor-not-allowed' }} transition-colors">
-                        <input type="radio" name="payment_method" value="paymongo" class="mr-3 text-brand-darkgreen focus:ring-brand-darkgreen" @checked($onlinePayment && old('payment_method', 'paymongo') === 'paymongo') @disabled(!$onlinePayment)>
-                        <div>
-                            <div class="font-medium">Pay online with PayMongo</div>
-                            <div class="text-sm text-gray-500">
-                                @if($onlinePayment)
-                                    GCash, Maya, GrabPay, QR Ph or card. You'll be taken to PayMongo's secure payment page.
+            <div class="divide-y divide-brand-border/70">
+                @foreach($cartItems as $item)
+                    <div class="px-6 py-4 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <div class="shrink-0 w-12 h-16 bg-brand-cream rounded-md overflow-hidden border border-brand-border flex items-center justify-center">
+                                @if($item['book']->cover_image)
+                                    <img src="{{ asset('storage/' . $item['book']->cover_image) }}" alt="Cover of {{ $item['book']->title }}" class="w-12 h-16 object-cover">
                                 @else
-                                    Not available right now.
+                                    <svg class="w-5 h-5 text-brand-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                                 @endif
                             </div>
+                            <div class="min-w-0">
+                                <h3 class="text-sm font-semibold text-brand-ink truncate">{{ $item['book']->title }}</h3>
+                                <p class="text-xs text-brand-muted">{{ $item['book']->author }}</p>
+                                <p class="text-xs text-brand-muted mt-0.5 tabular-nums">Qty {{ $item['quantity'] }} &times; ₱{{ number_format($item['book']->price, 2) }}</p>
+                            </div>
                         </div>
-                    </label>
+                        <p class="text-sm font-bold text-brand-ink tabular-nums shrink-0">₱{{ number_format($item['subtotal'], 2) }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </section>
 
-                    <label class="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
-                        <input type="radio" name="payment_method" value="cash_on_delivery" class="mr-3 text-brand-darkgreen focus:ring-brand-darkgreen" @checked(!$onlinePayment || old('payment_method') === 'cash_on_delivery')>
-                        <div>
-                            <div class="font-medium">Cash on Delivery</div>
-                            <div class="text-sm text-gray-500">Pay when you receive your order</div>
-                        </div>
-                    </label>
-                </div>
-                
-                @error('payment_method')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        <!-- Shipping Address -->
+        <section class="bg-white rounded-2xl border border-brand-border shadow-xs p-6">
+            <h2 class="font-serif text-lg font-bold text-brand-ink mb-4">2. Shipping Information</h2>
+            <div>
+                <label for="shipping_address" class="block text-sm font-medium text-brand-ink mb-1.5">
+                    Delivery Address <span class="text-red-500">*</span>
+                </label>
+                <textarea id="shipping_address"
+                          name="shipping_address"
+                          rows="3"
+                          required
+                          placeholder="Street address, barangay/unit, city, province, postal code"
+                          class="w-full rounded-xl border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen @error('shipping_address') border-red-400 @enderror">{{ old('shipping_address') }}</textarea>
+                <p class="mt-1.5 text-xs text-brand-muted">Include recipient name, complete street address, and contact instructions if needed.</p>
+                @error('shipping_address')
+                    <p class="mt-1 text-xs text-red-600 font-medium">{{ $message }}</p>
                 @enderror
             </div>
-        </div>
+        </section>
 
-        <!-- Order Summary -->
-        <div class="lg:col-span-1">
-            <div class="bg-white rounded-lg shadow-sm p-6 sticky top-4">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
-                
-                <div class="space-y-3">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Subtotal ({{ count($cartItems) }} items)</span>
-                        <span class="font-medium">₱{{ number_format($total, 2) }}</span>
-                    </div>
-                    
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Shipping</span>
-                        <span class="font-medium">Free</span>
-                    </div>
-                    
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Tax (12% VAT)</span>
-                        <span class="font-medium">₱{{ number_format($total * 0.12, 2) }}</span>
-                    </div>
-                    
-                    <div class="border-t pt-3">
-                        <div class="flex justify-between">
-                            <span class="text-lg font-semibold">Total</span>
-                            <span class="text-lg font-bold text-brand-darkgreen">₱{{ number_format($total * 1.12, 2) }}</span>
+        <!-- Payment Method -->
+        <section class="bg-white rounded-2xl border border-brand-border shadow-xs p-6">
+            <h2 class="font-serif text-lg font-bold text-brand-ink mb-4">3. Payment Method</h2>
+            @php $onlinePayment = app(\App\Integrations\PayMongo\PaymentService::class)->isConfigured(); @endphp
+
+            <div class="space-y-3">
+                <label class="flex items-start gap-3 p-4 rounded-xl border border-brand-border {{ $onlinePayment ? 'cursor-pointer hover:bg-brand-paper has-[:checked]:border-brand-darkgreen has-[:checked]:bg-brand-cream/60' : 'opacity-60 cursor-not-allowed bg-stone-50' }} transition-colors">
+                    <input type="radio" name="payment_method" value="paymongo" class="mt-1 text-brand-darkgreen focus:ring-brand-darkgreen" @checked($onlinePayment && old('payment_method', 'paymongo') === 'paymongo') @disabled(!$onlinePayment)>
+                    <div>
+                        <div class="text-sm font-semibold text-brand-ink">Pay online with PayMongo</div>
+                        <div class="text-xs text-brand-muted mt-0.5">
+                            @if($onlinePayment)
+                                GCash, Maya, GrabPay, QR Ph, or credit/debit card on PayMongo's secure checkout page.
+                            @else
+                                Online payment is currently unavailable.
+                            @endif
                         </div>
                     </div>
-                </div>
+                </label>
 
-                <div class="mt-6">
-                    <button type="submit" class="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-darkgreen hover:bg-brand-amber hover:text-brand-darkgreen transition-colors">
-                        Place Order
-                    </button>
-                    
-                    <p class="mt-3 text-xs text-gray-500 text-center">
-                        By placing this order, you agree to our Terms of Service and Privacy Policy
-                    </p>
-                </div>
-
-                <!-- Security Badge -->
-                <div class="mt-6 flex items-center justify-center">
-                    <div class="flex items-center text-xs text-gray-500">
-                        <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                        </svg>
-                        Secure Checkout
+                <label class="flex items-start gap-3 p-4 rounded-xl border border-brand-border cursor-pointer hover:bg-brand-paper has-[:checked]:border-brand-darkgreen has-[:checked]:bg-brand-cream/60 transition-colors">
+                    <input type="radio" name="payment_method" value="cash_on_delivery" class="mt-1 text-brand-darkgreen focus:ring-brand-darkgreen" @checked(!$onlinePayment || old('payment_method') === 'cash_on_delivery')>
+                    <div>
+                        <div class="text-sm font-semibold text-brand-ink">Cash on Delivery</div>
+                        <div class="text-xs text-brand-muted mt-0.5">Pay in cash when your books arrive at your doorstep.</div>
                     </div>
-                </div>
+                </label>
             </div>
+            @error('payment_method')
+                <p class="mt-2 text-xs text-red-600 font-medium">{{ $message }}</p>
+            @enderror
+        </section>
+    </div>
+
+    <!-- Summary Sidebar -->
+    <aside class="lg:col-span-4 bg-white rounded-2xl border border-brand-border shadow-xs p-6 lg:sticky lg:top-24">
+        <h2 class="font-serif text-lg font-bold text-brand-ink mb-4">Order Summary</h2>
+
+        <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+                <dt class="text-brand-muted">Subtotal ({{ count($cartItems) }} {{ Str::plural('item', count($cartItems)) }})</dt>
+                <dd class="font-medium text-brand-ink tabular-nums">₱{{ number_format($total, 2) }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-brand-muted">Shipping</dt>
+                <dd class="font-medium text-emerald-700">Free</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-brand-muted">VAT (12%)</dt>
+                <dd class="font-medium text-brand-ink tabular-nums">₱{{ number_format($total * 0.12, 2) }}</dd>
+            </div>
+            <div class="border-t border-brand-border pt-3 flex justify-between items-baseline">
+                <dt class="text-base font-bold text-brand-ink">Total Due</dt>
+                <dd class="text-xl font-bold text-brand-darkgreen tabular-nums">₱{{ number_format($total * 1.12, 2) }}</dd>
+            </div>
+        </dl>
+
+        <button type="submit" class="mt-6 w-full inline-flex items-center justify-center px-5 py-3 rounded-xl bg-brand-darkgreen text-white font-semibold text-sm hover:bg-brand-forest transition-colors shadow-xs">
+            Place Order
+        </button>
+
+        <div class="mt-4 flex items-center justify-center gap-1.5 text-xs text-brand-muted">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>Encrypted, secure checkout</span>
         </div>
-    </form>
-</div>
+    </aside>
+</form>
 @endsection

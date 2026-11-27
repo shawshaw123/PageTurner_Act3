@@ -1,229 +1,239 @@
 @extends('layouts.app')
 
-@section('title', 'Admin Dashboard - PageTurner')
+@section('title', 'Admin Dashboard — PageTurner')
 
 @section('header')
-<div class="flex justify-between items-center">
-    <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-    <span class="bg-brand-amber text-brand-darkgreen px-3 py-1 rounded-full text-sm font-semibold">Administrator</span>
-</div>
+<x-page-header
+    title="Admin Dashboard"
+    subtitle="Storefront performance, order activity, inventory alerts, and platform operations."
+    :breadcrumbs="[
+        ['label' => 'Home', 'url' => route('home')],
+        ['label' => 'Admin Dashboard'],
+    ]"
+>
+    <x-slot:actions>
+        <a href="{{ route('books.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Book
+        </a>
+        <a href="{{ route('admin.import-export.index') }}" class="px-4 py-2 rounded-lg border border-brand-border bg-white text-sm font-medium text-brand-ink hover:bg-brand-cream transition-colors">
+            Import / Export
+        </a>
+    </x-slot:actions>
+</x-page-header>
 @endsection
 
 @section('content')
-{{-- Stats Cards --}}
+{{-- Top KPI Cards --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-    {{-- Total Users --}}
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase tracking-wide">Users</p>
-                <p class="text-3xl font-bold text-gray-800">{{ number_format($stats['total_users']) }}</p>
-            </div>
-            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
-                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-            </div>
-        </div>
-    </div>
-
-    {{-- Total Books --}}
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase tracking-wide">Books</p>
-                <p class="text-3xl font-bold text-gray-800">{{ number_format($stats['total_books']) }}</p>
-            </div>
-            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
-                <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-            </div>
-        </div>
-    </div>
-
-    {{-- Total Categories --}}
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase tracking-wide">Categories</p>
-                <p class="text-3xl font-bold text-gray-800">{{ number_format($stats['total_categories']) }}</p>
-            </div>
-            <div class="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center">
-                <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-            </div>
-        </div>
-    </div>
-
-    {{-- Total Orders --}}
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-brand-amber">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase tracking-wide">Orders</p>
-                <p class="text-3xl font-bold text-gray-800">{{ number_format($stats['total_orders']) }}</p>
-            </div>
-            <div class="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
-                <svg class="w-6 h-6 text-brand-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-            </div>
-        </div>
-    </div>
-
-    {{-- Revenue --}}
-    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-brand-darkgreen">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase tracking-wide">Revenue</p>
-                <p class="text-2xl font-bold text-gray-800">₱{{ number_format($stats['total_revenue'], 2) }}</p>
-            </div>
-            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
-                <svg class="w-6 h-6 text-brand-darkgreen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-        </div>
-    </div>
+    <x-stat-card label="Customers" :value="number_format($stats['total_users'])" accent="info" />
+    <x-stat-card label="Books" :value="number_format($stats['total_books'])" accent="success" :href="route('books.index')" />
+    <x-stat-card label="Categories" :value="number_format($stats['total_categories'])" accent="neutral" :href="route('categories.index')" />
+    <x-stat-card label="Total Orders" :value="number_format($stats['total_orders'])" accent="amber" :href="route('orders.index')" />
+    <x-stat-card label="Completed Revenue" :value="'₱' . number_format($stats['total_revenue'], 2)" accent="brand" :href="route('orders.statistics')" />
 </div>
 
-{{-- Order Status Summary --}}
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-        <p class="text-2xl font-bold text-yellow-700">{{ $orderStatuses['pending'] }}</p>
-        <p class="text-sm text-yellow-600">Pending</p>
+{{-- Order Pipeline Breakdown --}}
+@php
+    $totalStatusCount = max(1, array_sum($orderStatuses));
+@endphp
+<section class="bg-white rounded-2xl border border-brand-border shadow-xs p-6 mb-8" aria-labelledby="pipeline-heading">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div>
+            <h2 id="pipeline-heading" class="font-serif text-lg font-bold text-brand-ink">Order Fulfilment Pipeline</h2>
+            <p class="text-xs text-brand-muted">Distribution of all orders by current status</p>
+        </div>
+        <a href="{{ route('orders.statistics') }}" class="text-xs font-semibold text-brand-darkgreen hover:text-brand-amber">Detailed statistics &rarr;</a>
     </div>
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-        <p class="text-2xl font-bold text-blue-700">{{ $orderStatuses['processing'] }}</p>
-        <p class="text-sm text-blue-600">Processing</p>
-    </div>
-    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-        <p class="text-2xl font-bold text-green-700">{{ $orderStatuses['completed'] }}</p>
-        <p class="text-sm text-green-600">Completed</p>
-    </div>
-    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-        <p class="text-2xl font-bold text-red-700">{{ $orderStatuses['cancelled'] }}</p>
-        <p class="text-sm text-red-600">Cancelled</p>
-    </div>
-</div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div class="w-full h-2.5 rounded-full bg-stone-100 overflow-hidden flex mb-5" aria-hidden="true">
+        <div class="bg-amber-400 h-full" style="width: {{ ($orderStatuses['pending'] / $totalStatusCount) * 100 }}%"></div>
+        <div class="bg-sky-500 h-full" style="width: {{ ($orderStatuses['processing'] / $totalStatusCount) * 100 }}%"></div>
+        <div class="bg-emerald-500 h-full" style="width: {{ ($orderStatuses['completed'] / $totalStatusCount) * 100 }}%"></div>
+        <div class="bg-red-400 h-full" style="width: {{ ($orderStatuses['cancelled'] / $totalStatusCount) * 100 }}%"></div>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="rounded-xl bg-amber-50/70 border border-amber-200/70 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-amber-800">Pending</p>
+            <p class="mt-1 text-2xl font-bold text-amber-900 tabular-nums">{{ $orderStatuses['pending'] }}</p>
+        </div>
+        <div class="rounded-xl bg-sky-50/70 border border-sky-200/70 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-sky-800">Processing</p>
+            <p class="mt-1 text-2xl font-bold text-sky-900 tabular-nums">{{ $orderStatuses['processing'] }}</p>
+        </div>
+        <div class="rounded-xl bg-emerald-50/70 border border-emerald-200/70 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-800">Completed</p>
+            <p class="mt-1 text-2xl font-bold text-emerald-900 tabular-nums">{{ $orderStatuses['completed'] }}</p>
+        </div>
+        <div class="rounded-xl bg-red-50/70 border border-red-200/70 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-red-800">Cancelled</p>
+            <p class="mt-1 text-2xl font-bold text-red-900 tabular-nums">{{ $orderStatuses['cancelled'] }}</p>
+        </div>
+    </div>
+</section>
+
+{{-- Operations & Platform Tools --}}
+<section class="bg-white rounded-2xl border border-brand-border shadow-xs p-6 mb-8" aria-labelledby="ops-heading">
+    <h2 id="ops-heading" class="font-serif text-lg font-bold text-brand-ink mb-1">Operations &amp; Administration</h2>
+    <p class="text-xs text-brand-muted mb-5">Direct access to catalog management, data portability, backups, security audits, and API tools.</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <a href="{{ route('admin.sellers.index') }}" class="flex items-center gap-3 p-3.5 rounded-xl border border-brand-border hover:border-brand-darkgreen/40 hover:bg-brand-paper transition-colors">
+            <span class="w-9 h-9 rounded-lg bg-brand-cream text-brand-darkgreen flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-brand-ink">Seller Approvals</p>
+                <p class="text-xs text-brand-muted truncate">Review &amp; manage sellers</p>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.import-export.index') }}" class="flex items-center gap-3 p-3.5 rounded-xl border border-brand-border hover:border-brand-darkgreen/40 hover:bg-brand-paper transition-colors">
+            <span class="w-9 h-9 rounded-lg bg-brand-cream text-brand-darkgreen flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-brand-ink">Import &amp; Export</p>
+                <p class="text-xs text-brand-muted truncate">Excel, CSV &amp; PDF tools</p>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.backup.index') }}" class="flex items-center gap-3 p-3.5 rounded-xl border border-brand-border hover:border-brand-darkgreen/40 hover:bg-brand-paper transition-colors">
+            <span class="w-9 h-9 rounded-lg bg-brand-cream text-brand-darkgreen flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-brand-ink">Database Backups</p>
+                <p class="text-xs text-brand-muted truncate">Schedule &amp; snapshots</p>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.audit.index') }}" class="flex items-center gap-3 p-3.5 rounded-xl border border-brand-border hover:border-brand-darkgreen/40 hover:bg-brand-paper transition-colors">
+            <span class="w-9 h-9 rounded-lg bg-brand-cream text-brand-darkgreen flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-brand-ink">Audit Logs</p>
+                <p class="text-xs text-brand-muted truncate">Security &amp; change trail</p>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.api-rate-limits.index') }}" class="flex items-center gap-3 p-3.5 rounded-xl border border-brand-border hover:border-brand-darkgreen/40 hover:bg-brand-paper transition-colors">
+            <span class="w-9 h-9 rounded-lg bg-brand-cream text-brand-darkgreen flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-brand-ink">API Rate Limits</p>
+                <p class="text-xs text-brand-muted truncate">Traffic &amp; throttle monitor</p>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.ai.dashboard') }}" class="flex items-center gap-3 p-3.5 rounded-xl border border-brand-border hover:border-brand-darkgreen/40 hover:bg-brand-paper transition-colors">
+            <span class="w-9 h-9 rounded-lg bg-brand-cream text-brand-darkgreen flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-brand-ink">AI Monitoring</p>
+                <p class="text-xs text-brand-muted truncate">Usage, tokens &amp; latency</p>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.api-docs') }}" class="flex items-center gap-3 p-3.5 rounded-xl border border-brand-border hover:border-brand-darkgreen/40 hover:bg-brand-paper transition-colors">
+            <span class="w-9 h-9 rounded-lg bg-brand-cream text-brand-darkgreen flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-brand-ink">REST API Docs</p>
+                <p class="text-xs text-brand-muted truncate">OpenAPI / Swagger UI</p>
+            </div>
+        </a>
+
+        <a href="{{ route('categories.index') }}" class="flex items-center gap-3 p-3.5 rounded-xl border border-brand-border hover:border-brand-darkgreen/40 hover:bg-brand-paper transition-colors">
+            <span class="w-9 h-9 rounded-lg bg-brand-cream text-brand-darkgreen flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.85" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+            </span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-brand-ink">Categories</p>
+                <p class="text-xs text-brand-muted truncate">Organize catalog shelves</p>
+            </div>
+        </a>
+    </div>
+</section>
+
+{{-- Activity & Inventory Grid --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     {{-- Recent Orders --}}
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h2 class="text-lg font-semibold text-gray-800">Recent Orders</h2>
-            <a href="{{ route('orders.index') }}" class="text-sm text-brand-darkgreen hover:text-brand-amber font-medium">View All →</a>
+    <section class="lg:col-span-2 bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+            <h2 class="font-serif text-lg font-bold text-brand-ink">Recent Orders</h2>
+            <a href="{{ route('orders.index') }}" class="text-xs font-semibold text-brand-darkgreen hover:text-brand-amber">View all &rarr;</a>
         </div>
-        <div class="divide-y divide-gray-100">
+        <div class="divide-y divide-brand-border/70">
             @forelse($recentOrders as $order)
-                <div class="p-4 hover:bg-gray-50 transition-colors">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <a href="{{ route('orders.show', $order) }}" class="font-semibold text-gray-800 hover:text-brand-darkgreen">#{{ $order->id }}</a>
-                            <p class="text-sm text-gray-500">{{ $order->user->name ?? 'N/A' }} · {{ $order->created_at->diffForHumans() }}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-medium text-gray-800">₱{{ number_format($order->total_amount, 2) }}</p>
-                            <span class="text-xs px-2 py-1 rounded-full inline-block
-                                @if($order->status == 'completed') bg-green-100 text-green-700
-                                @elseif($order->status == 'processing') bg-blue-100 text-blue-700
-                                @elseif($order->status == 'cancelled') bg-red-100 text-red-700
-                                @else bg-yellow-100 text-yellow-700 @endif">
-                                {{ ucfirst($order->status) }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            @empty
-                <div class="p-6 text-center text-gray-400">No orders yet.</div>
-            @endforelse
-        </div>
-    </div>
-
-    {{-- Recent Reviews --}}
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div class="p-6 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-800">Recent Reviews</h2>
-        </div>
-        <div class="divide-y divide-gray-100">
-            @forelse($recentReviews as $review)
-                <div class="p-4 hover:bg-gray-50 transition-colors">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <a href="{{ route('books.show', $review->book) }}" class="font-medium text-gray-800 hover:text-brand-darkgreen">{{ $review->book->title }}</a>
-                            <p class="text-sm text-gray-500">by {{ $review->user->name }} · {{ $review->created_at->diffForHumans() }}</p>
-                            @if($review->comment)
-                                <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ Str::limit($review->comment, 80) }}</p>
-                            @endif
-                        </div>
-                        <div class="flex items-center text-brand-amber">
-                            @for($i = 1; $i <= 5; $i++)
-                                <svg class="w-4 h-4 {{ $i <= $review->rating ? 'fill-current' : 'text-gray-300' }}" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
-                            @endfor
-                        </div>
-                    </div>
-                </div>
-            @empty
-                <div class="p-6 text-center text-gray-400">No reviews yet.</div>
-            @endforelse
-        </div>
-    </div>
-</div>
-
-{{-- Quick Navigation & Low Stock --}}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    {{-- Quick Links --}}
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div class="p-6 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-800">Quick Actions</h2>
-        </div>
-        <div class="p-6 grid grid-cols-2 gap-4">
-            <a href="{{ route('books.index') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-brand-darkgreen hover:text-white transition-all group">
-                <svg class="w-5 h-5 mr-3 text-brand-darkgreen group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                <span class="font-medium">Manage Books</span>
-            </a>
-            <a href="{{ route('categories.index') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-brand-darkgreen hover:text-white transition-all group">
-                <svg class="w-5 h-5 mr-3 text-brand-darkgreen group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                <span class="font-medium">Categories</span>
-            </a>
-            <a href="{{ route('orders.index') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-brand-darkgreen hover:text-white transition-all group">
-                <svg class="w-5 h-5 mr-3 text-brand-darkgreen group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                <span class="font-medium">Manage Orders</span>
-            </a>
-            <a href="{{ route('books.create') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-brand-amber hover:text-brand-darkgreen transition-all group">
-                <svg class="w-5 h-5 mr-3 text-brand-darkgreen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span class="font-medium">Add New Book</span>
-            </a>
-            <a href="{{ route('admin.import-export.index') }}" class="flex items-center p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg hover:from-green-600 hover:to-teal-600 hover:text-white transition-all group border-t-2 border-green-500 sm:border-t-0 lg:border-t-0 shadow-sm">
-                <svg class="w-5 h-5 mr-3 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg>
-                <span class="font-medium">Import Books</span>
-            </a>
-            <a href="{{ route('admin.import-export.index') }}" class="flex items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:from-blue-600 hover:to-indigo-600 hover:text-white transition-all group shadow-sm">
-                <svg class="w-5 h-5 mr-3 text-blue-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span class="font-medium">Export Data</span>
-            </a>
-            <a href="{{ route('admin.backup.index') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-brand-darkgreen hover:text-white transition-all group">
-                <svg class="w-5 h-5 mr-3 text-brand-darkgreen group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
-                <span class="font-medium">Backup Management</span>
-            </a>
-            <a href="{{ route('admin.audit.index') }}" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-brand-darkgreen hover:text-white transition-all group">
-                <svg class="w-5 h-5 mr-3 text-brand-darkgreen group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                <span class="font-medium">Audit Logs</span>
-            </a>
-        </div>
-    </div>
-
-    {{-- Low Stock Alert --}}
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div class="p-6 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-800">⚠️ Low Stock Alert</h2>
-        </div>
-        <div class="divide-y divide-gray-100">
-            @forelse($lowStockBooks as $book)
-                <div class="p-4 hover:bg-gray-50 transition-colors flex justify-between items-center">
+                <div class="px-6 py-3.5 hover:bg-brand-paper/60 transition-colors flex items-center justify-between gap-4">
                     <div>
-                        <a href="{{ route('books.show', $book) }}" class="font-medium text-gray-800 hover:text-brand-darkgreen">{{ $book->title }}</a>
-                        <p class="text-sm text-gray-500">{{ $book->author }}</p>
+                        <a href="{{ route('orders.show', $order) }}" class="font-mono text-sm font-semibold text-brand-ink hover:text-brand-darkgreen">#{{ $order->id }}</a>
+                        <p class="text-xs text-brand-muted">{{ $order->user->name ?? 'N/A' }} &middot; {{ $order->created_at->diffForHumans() }}</p>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-sm font-semibold {{ $book->stock_quantity == 0 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700' }}">
-                        {{ $book->stock_quantity }} left
-                    </span>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-brand-ink tabular-nums">₱{{ number_format($order->total_amount, 2) }}</p>
+                        <x-badge class="mt-0.5" :variant="match($order->status) { 'completed' => 'success', 'processing' => 'info', 'cancelled' => 'danger', default => 'warning' }">
+                            {{ ucfirst($order->status) }}
+                        </x-badge>
+                    </div>
                 </div>
             @empty
-                <div class="p-6 text-center text-gray-400">All books are well stocked! 👍</div>
+                <div class="p-8 text-center text-sm text-brand-muted">No orders recorded yet.</div>
             @endforelse
         </div>
+    </section>
+
+    {{-- Low Stock & Recent Reviews --}}
+    <div class="space-y-6">
+        <section class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+            <div class="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+                <h2 class="font-serif text-lg font-bold text-brand-ink">Low Stock Alerts</h2>
+                <x-badge :variant="$lowStockBooks->count() > 0 ? 'warning' : 'success'">{{ $lowStockBooks->count() }}</x-badge>
+            </div>
+            <div class="divide-y divide-brand-border/70">
+                @forelse($lowStockBooks as $book)
+                    <div class="px-6 py-3.5 hover:bg-brand-paper/60 transition-colors flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <a href="{{ route('books.edit', $book) }}" class="text-sm font-semibold text-brand-ink hover:text-brand-darkgreen truncate block">{{ $book->title }}</a>
+                            <p class="text-xs text-brand-muted truncate">{{ $book->author }}</p>
+                        </div>
+                        <x-badge :variant="$book->stock_quantity == 0 ? 'danger' : 'warning'">
+                            {{ $book->stock_quantity == 0 ? 'Out' : $book->stock_quantity . ' left' }}
+                        </x-badge>
+                    </div>
+                @empty
+                    <div class="p-6 text-center text-sm text-brand-muted">All books are well stocked.</div>
+                @endforelse
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+            <div class="px-6 py-4 border-b border-brand-border">
+                <h2 class="font-serif text-lg font-bold text-brand-ink">Recent Reviews</h2>
+            </div>
+            <div class="divide-y divide-brand-border/70">
+                @forelse($recentReviews as $review)
+                    <div class="px-6 py-3.5 hover:bg-brand-paper/60 transition-colors">
+                        <div class="flex items-start justify-between gap-2">
+                            <a href="{{ route('books.show', $review->book) }}" class="text-sm font-semibold text-brand-ink hover:text-brand-darkgreen truncate">{{ $review->book->title }}</a>
+                            <span class="text-xs font-bold text-brand-amber shrink-0">{{ $review->rating }}/5 ★</span>
+                        </div>
+                        <p class="text-xs text-brand-muted mt-0.5">{{ $review->user->name }} &middot; {{ $review->created_at->diffForHumans() }}</p>
+                        @if($review->comment)
+                            <p class="text-xs text-brand-ink/80 mt-1 line-clamp-2">{{ Str::limit($review->comment, 80) }}</p>
+                        @endif
+                    </div>
+                @empty
+                    <div class="p-6 text-center text-sm text-brand-muted">No reviews yet.</div>
+                @endforelse
+            </div>
+        </section>
     </div>
 </div>
 @endsection

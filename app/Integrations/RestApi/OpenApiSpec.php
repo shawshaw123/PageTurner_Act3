@@ -105,7 +105,7 @@ class OpenApiSpec
                 'post' => [
                     'tags' => ['Books'], 'summary' => 'Create a listing', 'operationId' => 'createBook', 'security' => $auth,
                     'description' => 'Approved sellers and admins. A seller owns the listings they create.',
-                    'requestBody' => $body('BookInput', ['category_id' => 1, 'title' => 'Noli Me Tangere', 'author' => 'Jose Rizal', 'isbn' => '9789710810736', 'price' => 350, 'stock_quantity' => 5, 'description' => 'Good condition.']),
+                    'requestBody' => $body('BookInput', ['category_id' => 1, 'title' => 'Noli Me Tangere', 'author' => 'Jose Rizal', 'isbn' => '9780140449136', 'price' => 350, 'stock_quantity' => 5, 'description' => 'Good condition.']),
                     'responses' => ['201' => $one('Book', 'Created'), '401' => $err('Unauthenticated'), '403' => $err('Forbidden'), '422' => $err('ValidationError')],
                 ],
             ],

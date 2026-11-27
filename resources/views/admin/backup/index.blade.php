@@ -1,185 +1,145 @@
 @extends('layouts.app')
 
-@section('title', 'Backup Management - Admin')
+@section('title', 'Database Backups — PageTurner Admin')
+
+@section('header')
+<x-page-header
+    title="Database Backups"
+    subtitle="Monitor automated backup health, trigger manual snapshots, and manage retention."
+    :breadcrumbs="[
+        ['label' => 'Admin', 'url' => route('admin.dashboard')],
+        ['label' => 'Backups'],
+    ]"
+>
+    <x-slot:actions>
+        <form action="{{ route('admin.backup.store') }}" method="POST" class="inline">
+            @csrf
+            <input type="hidden" name="backup_type" value="manual">
+            <input type="hidden" name="disks[]" value="local">
+            <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
+                Run Backup Now
+            </button>
+        </form>
+        <form action="{{ route('admin.backup.clean') }}" method="POST" class="inline" data-confirm="Clean up old backups according to the retention policy?">
+            @csrf
+            <button type="submit" class="px-4 py-2 rounded-lg border border-brand-border bg-white text-sm font-medium text-brand-ink hover:bg-brand-cream transition-colors">
+                Clean Old Backups
+            </button>
+        </form>
+    </x-slot:actions>
+</x-page-header>
+@endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1><i class="fas fa-database"></i> Backup Management</h1>
-                <div>
-                    <form action="{{ route('admin.backup.store') }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-play"></i> Run Backup Now
-                        </button>
-                    </form>
-                    <form action="{{ route('admin.backup.clean') }}" method="POST" class="d-inline ml-2">
-                        @csrf
-                        <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-trash"></i> Clean Old Backups
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+{{-- Backup Stats --}}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <x-stat-card label="Total Backups" :value="$backupStats['total_backups']" accent="brand" />
+    <x-stat-card label="Successful" :value="$backupStats['successful_backups']" accent="success" />
+    <x-stat-card label="Failed" :value="$backupStats['failed_backups']" accent="danger" />
+    <x-stat-card label="Success Rate" :value="$backupStats['success_rate'] . '%'" accent="amber" />
+</div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-history"></i> Recent Backups</h5>
-                </div>
-                <div class="card-body">
-                    @if($backups->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Type</th>
-                                        <th>Status</th>
-                                        <th>Size</th>
-                                        <th>Duration</th>
-                                        <th>Started</th>
-                                        <th>Completed</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($backups as $backup)
-                                        <tr>
-                                            <td>
-                                                <span class="badge bg-{{ $backup->backup_type == 'daily' ? 'info' : ($backup->backup_type == 'weekly' ? 'warning' : 'secondary') }}">
-                                                    {{ strtoupper($backup->backup_type) }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                @if($backup->status == 'completed')
-                                                    <span class="badge bg-success">Completed</span>
-                                                @elseif($backup->status == 'failed')
-                                                    <span class="badge bg-danger">Failed</span>
-                                                @elseif($backup->status == 'running')
-                                                    <span class="badge bg-warning">Running</span>
-                                                @else
-                                                    <span class="badge bg-secondary">{{ $backup->status }}</span>
-                                                @endif
-                                            </td>
-                                            <td>{{ $backup->getSizeFormattedAttribute() }}</td>
-                                            <td>
-                                                @if($backup->duration_seconds)
-                                                    {{ gmdate('H:i:s', $backup->duration_seconds) }}
-                                                @else
-                                                    <span class="text-muted">-</span>
-                                                @endif
-                                            </td>
-                                            <td>{{ $backup->started_at->format('M j, Y H:i:s') }}</td>
-                                            <td>
-                                                @if($backup->completed_at)
-                                                    {{ $backup->completed_at->format('M j, Y H:i:s') }}
-                                                @else
-                                                    <span class="text-muted">-</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if($backup->status == 'completed' && $backup->file_path)
-                                                    <a href="{{ route('admin.backup.download', $backup->id) }}" class="btn btn-sm btn-primary">
-                                                        <i class="fas fa-download"></i> Download
-                                                    </a>
-                                                @endif
-                                                @if($backup->status == 'running')
-                                                    <button class="btn btn-sm btn-warning" disabled>
-                                                        <i class="fas fa-spinner fa-spin"></i> Running
-                                                    </button>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        {{ $backups->links() }}
-                    @else
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No backups found. Run your first backup using the button above.
-                        </div>
-                    @endif
-                </div>
-            </div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    {{-- Recent Backups Table --}}
+    <section class="lg:col-span-8 bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-brand-border">
+            <h2 class="font-serif text-lg font-bold text-brand-ink">Backup History</h2>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-chart-pie"></i> Backup Statistics</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-12 mb-3">
-                            <h4 class="text-primary">{{ $backupStats['total_backups'] }}</h4>
-                            <small>Total Backups</small>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <h4 class="text-success">{{ $backupStats['successful_backups'] }}</h4>
-                            <small>Successful</small>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <h4 class="text-danger">{{ $backupStats['failed_backups'] }}</h4>
-                            <small>Failed</small>
-                        </div>
-                        <div class="col-12">
-                            <h4 class="text-info">{{ $backupStats['success_rate'] }}%</h4>
-                            <small>Success Rate</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-cog"></i> Backup Configuration</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Schedule</h6>
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-clock text-info"></i> Daily: 02:00 AM</li>
-                                <li><i class="fas fa-calendar-week text-warning"></i> Weekly: Sunday 02:00 AM</li>
-                                <li><i class="fas fa-calendar-alt text-secondary"></i> Monthly: 1st 02:00 AM</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Retention Policy</h6>
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-database text-primary"></i> 7 Daily Backups</li>
-                                <li><i class="fas fa-database text-warning"></i> 4 Weekly Backups</li>
-                                <li><i class="fas fa-database text-secondary"></i> 12 Monthly Backups</li>
-                            </ul>
-                        </div>
+        @if($backups->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-brand-border text-sm">
+                    <thead class="bg-brand-cream/70">
+                        <tr>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Type</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Status</th>
+                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-muted">Size</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Started</th>
+                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-muted">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-brand-border/70">
+                        @foreach($backups as $backup)
+                            <tr class="hover:bg-brand-paper/60 transition-colors">
+                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                    <x-badge variant="brand">{{ strtoupper($backup->backup_type) }}</x-badge>
+                                </td>
+                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                    <x-badge :variant="match($backup->status) { 'completed' => 'success', 'failed' => 'danger', 'running', 'started' => 'warning', default => 'neutral' }" dot>
+                                        {{ ucfirst($backup->status) }}
+                                    </x-badge>
+                                </td>
+                                <td class="px-5 py-3.5 whitespace-nowrap text-right font-mono text-xs text-brand-ink">
+                                    {{ $backup->getSizeFormattedAttribute() }}
+                                </td>
+                                <td class="px-5 py-3.5 whitespace-nowrap text-xs text-brand-muted">
+                                    {{ $backup->started_at->format('M j, Y H:i') }}
+                                </td>
+                                <td class="px-5 py-3.5 whitespace-nowrap text-right space-x-2">
+                                    @if($backup->status === 'completed' && ($backup->path || $backup->file_path))
+                                        <a href="{{ route('admin.backup.download', $backup->id) }}" class="text-xs font-semibold text-brand-darkgreen hover:text-brand-amber">Download</a>
+                                    @endif
+                                    <form action="{{ route('admin.backup.destroy', $backup->id) }}" method="POST" class="inline" data-confirm="Delete this backup record and its archive file?">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-xs font-semibold text-red-600 hover:text-red-800">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 border-t border-brand-border">{{ $backups->links() }}</div>
+        @else
+            <div class="p-8 text-center text-sm text-brand-muted">
+                No backups recorded yet. Click <strong>Run Backup Now</strong> to create your first snapshot.
+            </div>
+        @endif
+    </section>
+
+    {{-- Schedule & Retention Sidebar --}}
+    <aside class="lg:col-span-4 space-y-6">
+        <div class="bg-white rounded-2xl border border-brand-border shadow-xs p-6">
+            <h2 class="font-serif text-lg font-bold text-brand-ink mb-4">Last Backup Status</h2>
+            @if($lastBackup)
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-brand-muted">Status</span>
+                        <x-badge :variant="$lastBackup->status === 'completed' ? 'success' : 'danger'" dot>{{ ucfirst($lastBackup->status) }}</x-badge>
                     </div>
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <div class="alert alert-success">
-                                <i class="fas fa-check-circle"></i> <strong>Last Backup:</strong>
-                                @if($lastBackup)
-                                    {{ $lastBackup->started_at->format('M j, Y H:i') }} - 
-                                    <span class="badge bg-{{ $lastBackup->status == 'completed' ? 'success' : 'danger' }}">
-                                        {{ $lastBackup->status }}
-                                    </span>
-                                @else
-                                    <span class="text-muted">No backups run yet</span>
-                                @endif
-                            </div>
-                        </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-brand-muted">Started</span>
+                        <span class="font-medium text-brand-ink">{{ $lastBackup->started_at->format('M j, Y H:i') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-brand-muted">Size</span>
+                        <span class="font-mono text-xs text-brand-ink">{{ $lastBackup->getSizeFormattedAttribute() }}</span>
                     </div>
                 </div>
+            @else
+                <p class="text-sm text-brand-muted">No backups have been executed yet.</p>
+            @endif
+        </div>
+
+        <div class="bg-white rounded-2xl border border-brand-border shadow-xs p-6 space-y-5">
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-brand-muted mb-2.5">Automated Schedule</h3>
+                <ul class="space-y-1.5 text-sm text-brand-ink">
+                    <li>&bull; Daily at 02:00 AM</li>
+                    <li>&bull; Weekly on Sunday at 02:00 AM</li>
+                    <li>&bull; Monthly on the 1st at 02:00 AM</li>
+                </ul>
+            </div>
+            <div class="pt-4 border-t border-brand-border">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-brand-muted mb-2.5">Retention Policy</h3>
+                <ul class="space-y-1.5 text-sm text-brand-ink">
+                    <li>&bull; Keep 7 daily snapshots</li>
+                    <li>&bull; Keep 4 weekly snapshots</li>
+                    <li>&bull; Keep 12 monthly snapshots</li>
+                </ul>
             </div>
         </div>
-    </div>
+    </aside>
 </div>
 @endsection

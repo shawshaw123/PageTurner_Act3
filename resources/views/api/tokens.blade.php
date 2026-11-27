@@ -1,64 +1,82 @@
 @extends('layouts.app')
 
-@section('title', 'API Tokens - PageTurner')
+@section('title', 'API Tokens — PageTurner')
 
 @section('header')
-<h1 class="text-3xl font-bold text-gray-900">API Tokens</h1>
-<p class="text-gray-500 mt-1">Tokens let apps use the
-    @if(auth()->user()->isAdmin())<a href="{{ route('admin.api-docs') }}" class="text-brand-darkgreen underline hover:text-brand-amber">REST API</a>@else REST API @endif
-    as you. Send one as <code class="bg-gray-100 px-1 rounded">Authorization: Bearer &lt;token&gt;</code>.</p>
+<x-page-header
+    title="API Tokens"
+    subtitle="Create personal access tokens to authenticate with the PageTurner REST API."
+    :breadcrumbs="[
+        ['label' => 'Home', 'url' => route('home')],
+        ['label' => 'API Tokens'],
+    ]"
+>
+    @if(auth()->user()->isAdmin())
+        <x-slot:actions>
+            <a href="{{ route('admin.api-docs') }}" class="px-4 py-2 rounded-lg border border-brand-border bg-white text-sm font-medium text-brand-ink hover:bg-brand-cream transition-colors">
+                REST API Docs
+            </a>
+        </x-slot:actions>
+    @endif
+</x-page-header>
 @endsection
 
 @section('content')
 <div class="max-w-3xl space-y-6">
     @if(session('new_token'))
-        <div class="bg-green-50 border border-green-300 rounded-lg p-5" role="status">
-            <p class="font-semibold text-green-900">Your new token</p>
-            <p class="text-sm text-green-800 mt-1">Copy it now. For your security it won't be shown again.</p>
-            <div class="mt-3 flex gap-2">
-                <input id="new-token" type="text" readonly value="{{ session('new_token') }}" class="flex-1 font-mono text-sm border-green-300 rounded-md bg-white" aria-label="New API token">
-                <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('new-token').value); this.textContent='Copied';" class="bg-brand-darkgreen text-white px-4 py-2 rounded-md text-sm hover:bg-brand-amber hover:text-brand-darkgreen">Copy</button>
+        <x-alert type="success" title="Your new API token">
+            <p class="text-xs mb-3">Copy this token now. For your security, it will not be displayed again.</p>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <input id="new-token" type="text" readonly value="{{ session('new_token') }}" aria-label="New API token"
+                       class="flex-1 font-mono text-xs rounded-lg border-emerald-300 bg-white text-brand-ink">
+                <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('new-token').value); this.textContent='Copied!';"
+                        class="px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-xs font-semibold hover:bg-brand-forest transition-colors shrink-0">
+                    Copy Token
+                </button>
             </div>
-            @if(auth()->user()->isAdmin())
-                <a href="{{ route('admin.api-docs') }}" class="inline-block mt-3 text-sm text-green-900 underline">Try it in Swagger (click Authorize and paste it)</a>
-            @endif
-        </div>
+        </x-alert>
     @endif
 
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-900">Create a token</h2>
-        <form action="{{ route('api-tokens.store') }}" method="POST" class="mt-4 flex flex-wrap gap-2 items-start">
+    <section class="bg-white rounded-2xl border border-brand-border shadow-xs p-6">
+        <h2 class="font-serif text-lg font-bold text-brand-ink">Create a New Token</h2>
+        <p class="text-xs text-brand-muted mt-0.5">Send tokens in the <code class="bg-brand-cream px-1.5 py-0.5 rounded">Authorization: Bearer &lt;token&gt;</code> header.</p>
+        <form action="{{ route('api-tokens.store') }}" method="POST" class="mt-4 flex flex-col sm:flex-row gap-3">
             @csrf
-            <div class="flex-1 min-w-[14rem]">
+            <div class="flex-1">
                 <label for="name" class="sr-only">Token name</label>
-                <input type="text" id="name" name="name" value="{{ old('name') }}" required maxlength="100" placeholder="What is it for? e.g. Postman, mobile app" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-darkgreen focus:border-brand-darkgreen">
-                @error('name')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
+                <input type="text" id="name" name="name" value="{{ old('name') }}" required maxlength="100" placeholder="e.g. Postman, Mobile App, CI Script"
+                       class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+                @error('name')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
-            <button type="submit" class="bg-brand-darkgreen text-white px-4 py-2 rounded-md hover:bg-brand-amber hover:text-brand-darkgreen transition-colors">Create token</button>
+            <button type="submit" class="px-5 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors shrink-0">
+                Create Token
+            </button>
         </form>
-    </div>
+    </section>
 
-    <div class="bg-white rounded-lg shadow">
-        <h2 class="text-lg font-semibold text-gray-900 px-6 py-4 border-b">Your tokens</h2>
+    <section class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-brand-border">
+            <h2 class="font-serif text-lg font-bold text-brand-ink">Active Tokens</h2>
+        </div>
         @if($tokens->isEmpty())
-            <p class="px-6 py-6 text-sm text-gray-500">You have no API tokens.</p>
+            <div class="p-8 text-center text-sm text-brand-muted">You have not created any API tokens yet.</div>
         @else
-            <ul class="divide-y divide-gray-100">
+            <ul class="divide-y divide-brand-border/70">
                 @foreach($tokens as $token)
-                    <li class="px-6 py-3 flex items-center justify-between gap-4 text-sm">
-                        <div>
-                            <p class="font-medium text-gray-900">{{ $token->name }}</p>
-                            <p class="text-gray-500">Created {{ $token->created_at->diffForHumans() }} · {{ $token->last_used_at ? 'last used ' . $token->last_used_at->diffForHumans() : 'never used' }}</p>
+                    <li class="px-6 py-4 flex items-center justify-between gap-4 text-sm">
+                        <div class="min-w-0">
+                            <p class="font-semibold text-brand-ink truncate">{{ $token->name }}</p>
+                            <p class="text-xs text-brand-muted mt-0.5">Created {{ $token->created_at->diffForHumans() }} &middot; {{ $token->last_used_at ? 'Last used ' . $token->last_used_at->diffForHumans() : 'Never used' }}</p>
                         </div>
-                        <form action="{{ route('api-tokens.destroy', $token->id) }}" method="POST" onsubmit="return confirm('Revoke this token?')">
+                        <form action="{{ route('api-tokens.destroy', $token->id) }}" method="POST" data-confirm="Revoke token '{{ $token->name }}'? Any app using it will lose access.">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-red-600 hover:text-red-800 font-medium">Revoke</button>
+                            <button type="submit" class="text-xs font-semibold text-red-600 hover:text-red-800">Revoke</button>
                         </form>
                     </li>
                 @endforeach
             </ul>
         @endif
-    </div>
+    </section>
 </div>
 @endsection

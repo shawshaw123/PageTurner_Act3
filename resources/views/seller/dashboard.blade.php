@@ -1,114 +1,120 @@
 @extends('layouts.app')
 
-@section('title', 'Seller Dashboard - PageTurner')
+@section('title', 'Seller Dashboard — PageTurner')
 
 @section('header')
-<h1 class="text-3xl font-bold text-gray-900">{{ $seller->store_display_name }}</h1>
-<p class="text-gray-500 mt-1">Seller dashboard</p>
+<x-page-header
+    :title="$seller->store_display_name"
+    subtitle="Seller hub — manage your listings, inventory levels, and customer orders."
+    :breadcrumbs="[
+        ['label' => 'Home', 'url' => route('home')],
+        ['label' => 'Seller Hub'],
+    ]"
+>
+    @if($approved)
+        <x-slot:actions>
+            <a href="{{ route('books.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Add Listing
+            </a>
+        </x-slot:actions>
+    @endif
+</x-page-header>
 @endsection
 
 @section('content')
 @if(!$approved)
-    {{-- Pending or suspended seller --}}
-    <div class="bg-white rounded-lg shadow p-8 max-w-2xl">
+    <div class="bg-white rounded-2xl border border-brand-border shadow-xs p-8 max-w-2xl">
         @if($seller->seller_status === 'suspended')
-            <h2 class="text-xl font-semibold text-red-700">Your seller account is suspended</h2>
-            <p class="text-gray-600 mt-2">Your listings are hidden from buyers and you cannot add new ones. Please contact an administrator.</p>
+            <x-badge variant="danger" dot class="mb-3">Suspended</x-badge>
+            <h2 class="font-serif text-xl font-bold text-red-800">Your seller account is suspended</h2>
+            <p class="text-sm text-brand-muted mt-2">Your listings are hidden from buyers and you cannot publish new books. Please contact an administrator for assistance.</p>
         @else
-            <h2 class="text-xl font-semibold text-gray-900">Your seller account is awaiting approval</h2>
-            <p class="text-gray-600 mt-2">An administrator reviews every new seller. Once approved, you can add book listings and receive orders. You don't need to do anything else for now.</p>
+            <x-badge variant="warning" dot class="mb-3">Pending Review</x-badge>
+            <h2 class="font-serif text-xl font-bold text-brand-ink">Your seller account is awaiting approval</h2>
+            <p class="text-sm text-brand-muted mt-2">An administrator reviews every new bookstore account. Once approved, you can add listings and receive orders.</p>
         @endif
-        <dl class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <dl class="mt-6 pt-5 border-t border-brand-border grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
-                <dt class="text-gray-500">Store name</dt>
-                <dd class="font-medium text-gray-900">{{ $seller->store_display_name }}</dd>
+                <dt class="text-xs font-semibold uppercase tracking-wider text-brand-muted">Store Name</dt>
+                <dd class="mt-1 font-semibold text-brand-ink">{{ $seller->store_display_name }}</dd>
             </div>
             <div>
-                <dt class="text-gray-500">Status</dt>
-                <dd class="font-medium text-gray-900">{{ ucfirst($seller->seller_status ?? 'pending') }}</dd>
+                <dt class="text-xs font-semibold uppercase tracking-wider text-brand-muted">Status</dt>
+                <dd class="mt-1 font-semibold text-brand-ink">{{ ucfirst($seller->seller_status ?? 'pending') }}</dd>
             </div>
         </dl>
     </div>
 @else
-    {{-- Stats --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <a href="{{ route('seller.books') }}" class="bg-white rounded-lg shadow p-5 border-l-4 border-brand-darkgreen hover:shadow-md transition">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Listings</p>
-            <p class="text-3xl font-bold text-gray-800">{{ $stats['listings'] }}</p>
-        </a>
-        <div class="bg-white rounded-lg shadow p-5 border-l-4 border-red-400">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Low stock (≤ 5)</p>
-            <p class="text-3xl font-bold text-gray-800">{{ $stats['low_stock'] }}</p>
-        </div>
-        <a href="{{ route('orders.index') }}" class="bg-white rounded-lg shadow p-5 border-l-4 border-yellow-500 hover:shadow-md transition">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">New orders</p>
-            <p class="text-3xl font-bold text-gray-800">{{ $stats['pending_orders'] }}</p>
-        </a>
-        <a href="{{ route('orders.index') }}" class="bg-white rounded-lg shadow p-5 border-l-4 border-blue-500 hover:shadow-md transition">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">To ship</p>
-            <p class="text-3xl font-bold text-gray-800">{{ $stats['to_ship'] }}</p>
-        </a>
-        <div class="bg-white rounded-lg shadow p-5 border-l-4 border-brand-amber col-span-2 lg:col-span-1">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Completed sales</p>
-            <p class="text-2xl font-bold text-gray-800">₱{{ number_format($stats['revenue'], 2) }}</p>
-        </div>
+        <x-stat-card label="Listings" :value="$stats['listings']" accent="brand" :href="route('seller.books')" />
+        <x-stat-card label="Low Stock (≤ 5)" :value="$stats['low_stock']" accent="danger" />
+        <x-stat-card label="New Orders" :value="$stats['pending_orders']" accent="warning" :href="route('orders.index')" />
+        <x-stat-card label="To Ship" :value="$stats['to_ship']" accent="info" :href="route('orders.index')" />
+        <x-stat-card label="Completed Sales" :value="'₱' . number_format($stats['revenue'], 2)" accent="amber" class="col-span-2 lg:col-span-1" />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {{-- Recent orders --}}
-        <div class="lg:col-span-2 bg-white rounded-lg shadow">
-            <div class="flex items-center justify-between px-6 py-4 border-b">
-                <h2 class="text-lg font-semibold text-gray-900">Recent orders</h2>
-                <a href="{{ route('orders.index') }}" class="text-sm text-brand-darkgreen hover:text-brand-amber font-medium">View all</a>
+        <section class="lg:col-span-2 bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-brand-border">
+                <h2 class="font-serif text-lg font-bold text-brand-ink">Recent Orders</h2>
+                <a href="{{ route('orders.index') }}" class="text-xs font-semibold text-brand-darkgreen hover:text-brand-amber">View all &rarr;</a>
             </div>
             @if($recentOrders->isEmpty())
-                <p class="px-6 py-8 text-gray-500 text-sm">No orders yet. They will appear here when buyers purchase your books.</p>
+                <div class="p-8 text-center text-sm text-brand-muted">No orders yet. They will appear here as buyers purchase your books.</div>
             @else
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
-                            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase">Buyer</th>
-                            <th class="px-6 py-2 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
-                            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach($recentOrders as $order)
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-brand-border text-sm">
+                        <thead class="bg-brand-cream/60">
                             <tr>
-                                <td class="px-6 py-3">
-                                    <a href="{{ route('orders.show', $order) }}" class="text-brand-darkgreen hover:text-brand-amber font-medium">#{{ $order->id }}</a>
-                                    <span class="block text-xs text-gray-500">{{ $order->created_at->format('M d, Y') }} · {{ $order->order_items_count }} {{ Str::plural('item', $order->order_items_count) }}</span>
-                                </td>
-                                <td class="px-6 py-3 text-gray-700">{{ $order->user->name }}</td>
-                                <td class="px-6 py-3 text-right tabular-nums">₱{{ number_format($order->total_amount, 2) }}</td>
-                                <td class="px-6 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">{{ ucfirst($order->status) }}</span></td>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Order</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Buyer</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-muted">Total</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Status</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-brand-border/70">
+                            @foreach($recentOrders as $order)
+                                <tr class="hover:bg-brand-paper/60 transition-colors">
+                                    <td class="px-6 py-3.5">
+                                        <a href="{{ route('orders.show', $order) }}" class="font-mono font-semibold text-brand-darkgreen hover:text-brand-amber">#{{ $order->id }}</a>
+                                        <span class="block text-xs text-brand-muted">{{ $order->created_at->format('M d, Y') }} &middot; {{ $order->order_items_count }} {{ Str::plural('item', $order->order_items_count) }}</span>
+                                    </td>
+                                    <td class="px-6 py-3.5 text-brand-ink">{{ $order->user->name }}</td>
+                                    <td class="px-6 py-3.5 text-right font-semibold tabular-nums">₱{{ number_format($order->total_amount, 2) }}</td>
+                                    <td class="px-6 py-3.5">
+                                        <x-badge :variant="match($order->status) { 'completed' => 'success', 'shipped' => 'info', 'cancelled' => 'danger', default => 'warning' }">
+                                            {{ ucfirst($order->status) }}
+                                        </x-badge>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             @endif
-        </div>
+        </section>
 
-        {{-- Low stock --}}
-        <div class="bg-white rounded-lg shadow">
-            <div class="flex items-center justify-between px-6 py-4 border-b">
-                <h2 class="text-lg font-semibold text-gray-900">Low stock</h2>
-                <a href="{{ route('books.create') }}" class="text-sm bg-brand-darkgreen text-white px-3 py-1.5 rounded-md hover:bg-brand-amber hover:text-brand-darkgreen transition-colors">Add listing</a>
+        <section class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-brand-border">
+                <h2 class="font-serif text-lg font-bold text-brand-ink">Low Stock</h2>
+                <a href="{{ route('seller.books') }}" class="text-xs font-semibold text-brand-darkgreen hover:text-brand-amber">Manage &rarr;</a>
             </div>
             @if($lowStockBooks->isEmpty())
-                <p class="px-6 py-8 text-gray-500 text-sm">All your listings have more than 5 copies in stock.</p>
+                <div class="p-8 text-center text-sm text-brand-muted">All listings have more than 5 copies in stock.</div>
             @else
-                <ul class="divide-y divide-gray-100">
+                <ul class="divide-y divide-brand-border/70">
                     @foreach($lowStockBooks as $book)
-                        <li class="px-6 py-3 flex items-center justify-between text-sm">
-                            <a href="{{ route('books.edit', $book) }}" class="text-gray-800 hover:text-brand-darkgreen truncate mr-3">{{ $book->title }}</a>
-                            <span class="shrink-0 font-semibold {{ $book->stock_quantity === 0 ? 'text-red-600' : 'text-amber-600' }}">{{ $book->stock_quantity === 0 ? 'Out of stock' : $book->stock_quantity . ' left' }}</span>
+                        <li class="px-6 py-3.5 flex items-center justify-between gap-3 text-sm hover:bg-brand-paper/60 transition-colors">
+                            <a href="{{ route('books.edit', $book) }}" class="font-medium text-brand-ink hover:text-brand-darkgreen truncate">{{ $book->title }}</a>
+                            <x-badge :variant="$book->stock_quantity === 0 ? 'danger' : 'warning'" class="shrink-0">
+                                {{ $book->stock_quantity === 0 ? 'Out of stock' : $book->stock_quantity . ' left' }}
+                            </x-badge>
                         </li>
                     @endforeach
                 </ul>
             @endif
-        </div>
+        </section>
     </div>
 @endif
 @endsection
