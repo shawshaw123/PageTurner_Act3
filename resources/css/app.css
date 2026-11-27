@@ -6,8 +6,34 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-    --color-brand-amber: #FFBF00;
-    --color-brand-darkgreen: #31472e;
+    --font-sans: 'Plus Jakarta Sans', 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    --font-serif: 'Lora', Georgia, Cambria, 'Times New Roman', serif;
+    --color-brand-amber: #D99B26;
+    --color-brand-gold: #F2B84B;
+    --color-brand-darkgreen: #243B2E;
+    --color-brand-forest: #1B2D23;
+    --color-brand-paper: #FAF8F4;
+    --color-brand-cream: #F3EFE7;
+    --color-brand-border: #E6E0D4;
+    --color-brand-ink: #1C211E;
+    --color-brand-muted: #5C6660;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+        background-color: #FAF8F4;
+        color: #1C211E;
+        overflow-x: hidden;
+    }
+
+    :focus-visible {
+        outline: 2px solid #243B2E;
+        outline-offset: 2px;
+    }
 }

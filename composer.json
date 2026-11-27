@@ -7,8 +7,19 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-debugbar": "^4.2",
+        "barryvdh/laravel-dompdf": "*",
+        "beyondcode/laravel-query-detector": "^2.3",
+        "intervention/image": "^3.11",
         "laravel/framework": "^12.0",
-        "laravel/tinker": "^2.10.1"
+        "laravel/sanctum": "^4.1",
+        "laravel/scout": "^11.2",
+        "laravel/socialite": "^5.31",
+        "laravel/tinker": "^2.10.1",
+        "maatwebsite/excel": "*",
+        "openai-php/client": "^0.19.2",
+        "owen-it/laravel-auditing": "*",
+        "spatie/laravel-backup": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

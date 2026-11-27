@@ -1,80 +1,80 @@
 @extends('layouts.app')
 
-@section('title', 'Categories - PageTurner')
+@section('title', 'Book Categories — PageTurner')
 
 @section('header')
-<h1 class="text-3xl font-bold text-gray-900">Book Categories</h1>
+<x-page-header
+    title="Book Categories"
+    subtitle="Explore genres and curated collections across our bookstore."
+    :breadcrumbs="[
+        ['label' => 'Home', 'url' => route('home')],
+        ['label' => 'Categories'],
+    ]"
+>
+    @auth
+        @if(auth()->user()->isAdmin())
+            <x-slot:actions>
+                <a href="{{ route('categories.create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Add Category
+                </a>
+            </x-slot:actions>
+        @endif
+    @endauth
+</x-page-header>
 @endsection
 
 @section('content')
-@auth
-    @if(auth()->user()->isAdmin())
-        <div class="mb-6">
-            <a href="{{ route('categories.create') }}" class="bg-brand-darkgreen text-white px-4 py-2 rounded hover:bg-brand-amber hover:text-brand-darkgreen transition-colors">
-                Add New Category
-            </a>
+@if($categories->count() > 0)
+    <div class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-brand-border text-sm">
+                <thead class="bg-brand-cream/70">
+                    <tr>
+                        <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Category</th>
+                        <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Description</th>
+                        <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Books</th>
+                        <th scope="col" class="px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-brand-muted">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-brand-border/70">
+                    @foreach($categories as $category)
+                        <tr class="hover:bg-brand-paper/60 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <a href="{{ route('categories.show', $category) }}" class="font-serif font-semibold text-base text-brand-ink hover:text-brand-darkgreen transition-colors">
+                                    {{ $category->name }}
+                                </a>
+                            </td>
+                            <td class="px-6 py-4 text-brand-muted max-w-md">
+                                {{ Str::limit($category->description, 110) ?: '—' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <x-badge variant="brand">{{ $category->books_count }} {{ Str::plural('book', $category->books_count) }}</x-badge>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right font-medium space-x-3">
+                                <a href="{{ route('categories.show', $category) }}" class="text-brand-darkgreen hover:text-brand-amber transition-colors">Browse</a>
+                                @auth
+                                    @if(auth()->user()->isAdmin())
+                                        <a href="{{ route('categories.edit', $category) }}" class="text-brand-muted hover:text-brand-ink transition-colors">Edit</a>
+                                        <form action="{{ route('categories.destroy', $category) }}" method="POST" class="inline" data-confirm="Delete category '{{ $category->name }}'?">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                                        </form>
+                                    @endif
+                                @endauth
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    @endif
-@endauth
+    </div>
 
-<div class="bg-white rounded-lg shadow overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category Name
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Books Count
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                </th>
-            </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-            @foreach($categories as $category)
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <a href="{{ route('categories.show', $category) }}" class="text-brand-darkgreen hover:text-brand-amber font-medium transition-colors">
-                            {{ $category->name }}
-                        </a>
-                    </td>
-                    <td class="px-6 py-4">
-                        <p class="text-sm text-gray-500">{{ Str::limit($category->description, 100) }}</p>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-brand-amber/20 text-brand-darkgreen">
-                            {{ $category->books_count }} books
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a href="{{ route('categories.show', $category) }}" class="text-brand-darkgreen hover:text-brand-amber mr-3 transition-colors">View</a>
-                        
-                        @auth
-                            @if(auth()->user()->isAdmin())
-                                <a href="{{ route('categories.edit', $category) }}" class="text-brand-darkgreen hover:text-brand-amber mr-3 transition-colors">Edit</a>
-                                <form action="{{ route('categories.destroy', $category) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this category?')">
-                                        Delete
-                                    </button>
-                                </form>
-                            @endif
-                        @endauth
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-
-{{-- Pagination --}}
-<div class="mt-8">
-    {{ $categories->links() }}
-</div>
+    <div class="mt-8">
+        {{ $categories->links() }}
+    </div>
+@else
+    <x-empty-state title="No categories yet" description="Categories will appear here once added to the catalog." />
+@endif
 @endsection

@@ -1,67 +1,102 @@
 @extends('layouts.app')
 
-@section('title', 'Order Details - PageTurner')
+@section('title', 'Order #' . $order->id . ' — PageTurner')
 
 @section('header')
-<h1 class="text-3xl font-bold text-gray-900">Order #{{ $order->id }}</h1>
+<x-page-header
+    :title="'Order #' . $order->id"
+    :subtitle="'Placed on ' . $order->created_at->format('M d, Y \a\t H:i')"
+    :breadcrumbs="[
+        ['label' => 'Home', 'url' => route('home')],
+        ['label' => 'Orders', 'url' => route('orders.index')],
+        ['label' => 'Order #' . $order->id],
+    ]"
+>
+    <x-slot:actions>
+        @if($order->awaitsOnlinePayment() && auth()->id() === $order->user_id)
+            <a href="{{ route('orders.pay', $order) }}" class="px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
+                Pay Now
+            </a>
+        @endif
+        <a href="{{ route('orders.index') }}" class="px-4 py-2 rounded-lg border border-brand-border bg-white text-sm font-medium text-brand-ink hover:bg-brand-cream transition-colors">
+            &larr; All Orders
+        </a>
+    </x-slot:actions>
+</x-page-header>
 @endsection
 
 @section('content')
-<div class="bg-white rounded-lg shadow-lg overflow-hidden">
-    <div class="p-6 border-b">
-        <div class="flex justify-between items-center">
-            <div>
-                <p class="text-sm text-gray-500">Ordered on {{ $order->created_at->format('M d, Y H:i') }}</p>
-                <p class="mt-1">
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full 
-                        @if($order->status === 'completed') bg-green-100 text-green-800 
-                        @elseif($order->status === 'cancelled') bg-red-100 text-red-800 
-                        @else bg-blue-100 text-blue-800 @endif">
-                        {{ ucfirst($order->status) }}
-                    </span>
-                </p>
+@php
+    $statusVariant = match($order->status) {
+        'completed' => 'success',
+        'shipped' => 'info',
+        'processing' => 'warning',
+        'cancelled' => 'danger',
+        default => 'neutral',
+    };
+@endphp
+
+<div class="bg-white rounded-2xl border border-brand-border shadow-xs overflow-hidden">
+    {{-- Order Meta --}}
+    <div class="p-6 border-b border-brand-border grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="space-y-1.5 text-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-brand-muted">Parties &amp; Delivery</p>
+            <p class="text-brand-ink"><span class="text-brand-muted">Buyer:</span> <strong class="font-semibold">{{ $order->user->name }}</strong></p>
+            @if($order->seller)
+                <p class="text-brand-ink"><span class="text-brand-muted">Seller:</span> <strong class="font-semibold">{{ $order->seller->store_display_name }}</strong></p>
+            @endif
+            @if($order->shipping_address)
+                <p class="text-brand-ink"><span class="text-brand-muted">Ship to:</span> {{ $order->shipping_address }}</p>
+            @endif
+        </div>
+
+        <div class="space-y-2 text-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-brand-muted">Status &amp; Payment</p>
+            <div class="flex flex-wrap items-center gap-2">
+                <x-badge :variant="$statusVariant" dot>{{ ucfirst($order->status) }}</x-badge>
+                <x-badge :variant="$order->payment_status === 'paid' ? 'success' : (in_array($order->payment_status, ['failed', 'expired']) ? 'danger' : 'warning')">
+                    {{ $order->payment_status_label }}
+                </x-badge>
             </div>
-            <div class="text-right">
-                <p class="text-sm text-gray-500">Total Amount</p>
-                <p class="text-2xl font-bold text-brand-darkgreen">₱{{ number_format($order->total_amount, 2) }}</p>
-            </div>
+            <p class="text-xs text-brand-muted">
+                Method: {{ $order->payment_method === 'paymongo' ? 'PayMongo Online' : 'Cash on Delivery' }}
+                @if($order->paid_at)
+                    &middot; Paid {{ $order->paid_at->format('M d, Y H:i') }}
+                @endif
+            </p>
+        </div>
+
+        <div class="md:text-right">
+            <p class="text-xs font-bold uppercase tracking-wider text-brand-muted">Order Total</p>
+            <p class="mt-1 text-3xl font-bold text-brand-darkgreen tabular-nums">₱{{ number_format($order->total_amount, 2) }}</p>
         </div>
     </div>
 
+    {{-- Items Table --}}
     <div class="p-6">
-        <h2 class="text-lg font-semibold mb-4">Order Items</h2>
+        <h2 class="font-serif text-lg font-bold text-brand-ink mb-4">Order Items</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead>
+            <table class="min-w-full divide-y divide-brand-border text-sm">
+                <thead class="bg-brand-cream/60">
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Book</th>
-                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Unit Price</th>
-                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Subtotal</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-muted">Book</th>
+                        <th scope="col" class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-muted">Qty</th>
+                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-muted">Unit Price</th>
+                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-muted">Subtotal</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody class="divide-y divide-brand-border/70">
                     @foreach($order->orderItems as $item)
                         <tr>
-                            <td class="px-4 py-4">
-                                <div class="flex items-center">
-                                    <div class="ml-4">
-                                        <a href="{{ route('books.show', $item->book) }}" class="text-sm font-medium text-gray-900 hover:text-brand-darkgreen transition-colors">
-                                            {{ $item->book->title }}
-                                        </a>
-                                        <p class="text-xs text-gray-500">by {{ $item->book->author }}</p>
-                                    </div>
-                                </div>
+                            <td class="px-4 py-3.5">
+                                <a href="{{ route('books.show', $item->book) }}" class="font-semibold text-brand-ink hover:text-brand-darkgreen transition-colors">
+                                    {{ $item->book->title }}
+                                </a>
+                                <p class="text-xs text-brand-muted">by {{ $item->book->author }}</p>
                             </td>
-                            <td class="px-4 py-4 text-center text-sm text-gray-500">
-                                {{ $item->quantity }}
-                            </td>
-                            <td class="px-4 py-4 text-right text-sm text-gray-500">
-                                ₱{{ number_format($item->unit_price, 2) }}
-                            </td>
-                            <td class="px-4 py-4 text-right text-sm font-medium text-gray-900">
-                                ₱{{ number_format($item->subtotal, 2) }}
-                            </td>
+                            <td class="px-4 py-3.5 text-center text-brand-muted tabular-nums">{{ $item->quantity }}</td>
+                            <td class="px-4 py-3.5 text-right text-brand-muted tabular-nums">₱{{ number_format($item->price, 2) }}</td>
+                            <td class="px-4 py-3.5 text-right font-semibold text-brand-ink tabular-nums">₱{{ number_format($item->subtotal, 2) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -69,34 +104,28 @@
         </div>
     </div>
 
+    {{-- Admin / Seller Status Update --}}
     @auth
-        @if(auth()->user()->isAdmin())
-            <div class="p-6 bg-gray-50 border-t">
-                <h2 class="text-lg font-semibold mb-4 text-gray-800">Admin: Update Order Status</h2>
-                <form action="{{ route('orders.updateStatus', $order) }}" method="POST" class="flex items-end space-x-4">
+        @can('updateStatus', $order)
+            <div class="p-6 bg-brand-paper border-t border-brand-border">
+                <h2 class="font-serif text-base font-bold text-brand-ink mb-3">Update Fulfilment Status</h2>
+                <form action="{{ route('orders.updateStatus', $order) }}" method="POST" class="flex flex-wrap items-end gap-3">
                     @csrf
                     @method('PATCH')
-                    <div class="flex-1 max-w-xs">
-                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" id="status" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-darkgreen focus:border-brand-darkgreen">
-                            <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>Processing</option>
-                            <option value="completed" {{ $order->status === 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                    <div class="w-full sm:w-64">
+                        <label for="status" class="block text-xs font-semibold text-brand-muted mb-1">Order Status</label>
+                        <select name="status" id="status" class="w-full rounded-lg border-brand-border text-sm focus:border-brand-darkgreen focus:ring-brand-darkgreen">
+                            @foreach(\App\Models\Order::STATUSES as $status)
+                                <option value="{{ $status }}" @selected($order->status === $status)>{{ ucfirst($status) }}</option>
+                            @endforeach
                         </select>
                     </div>
-                    <button type="submit" class="bg-brand-darkgreen text-white px-6 py-2 rounded-md hover:bg-brand-amber hover:text-brand-darkgreen transition-colors">
-                        Update Status
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
+                        Save Status
                     </button>
                 </form>
             </div>
-        @endif
+        @endcan
     @endauth
-</div>
-
-<div class="mt-6">
-    <a href="{{ route('orders.index') }}" class="text-brand-darkgreen hover:text-brand-amber font-medium transition-colors">
-        &larr; Back to My Orders
-    </a>
 </div>
 @endsection

@@ -1,0 +1,1 @@
+<?php $file = "C:/Users/User/MARK/xammp/htdocs/Activity4/vendor/sebastian/version/src/Version.php"; $content = file_get_contents($file); $content = str_replace("readonly class Version", "class Version", $content); file_put_contents($file, $content); echo "SUCCESS"; ?>
