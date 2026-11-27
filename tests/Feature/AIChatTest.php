@@ -205,6 +205,10 @@ class AIChatTest extends TestCase
     {
         Queue::fake();
 
+        // Reviews are for verified purchases: the user received this book.
+        $order = \App\Models\Order::create(['user_id' => $this->user->id, 'total_amount' => 14.99, 'status' => 'completed']);
+        \App\Models\OrderItem::create(['order_id' => $order->id, 'book_id' => $this->book->id, 'quantity' => 1, 'price' => 14.99]);
+
         $response = $this->actingAs($this->user)->post(route('reviews.store', $this->book), [
             'rating' => 5,
             'comment' => 'This is a fantastic book! Highly recommended.',

@@ -5,6 +5,11 @@
             {{ session('status') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="font-medium text-sm text-red-600 mb-4" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
@@ -12,7 +17,7 @@
         <!-- Email Address -->
         <div>
             <label for="email" class="block font-medium text-sm text-gray-700">Email</label>
-            <input id="email" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-darkgreen focus:border-brand-darkgreen" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <input id="email" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-darkgreen focus:border-brand-darkgreen" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" />
             @error('email')
                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
             @enderror
@@ -47,4 +52,6 @@
             </button>
         </div>
     </form>
+
+    @include('auth.partials.google-button', ['label' => 'Sign in with Google'])
 </x-guest-layout>

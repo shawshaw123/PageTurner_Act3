@@ -19,7 +19,7 @@ return new class extends Migration
 
     private function addIndexIfNotExists(string $table, array $columns, string $indexName): void
     {
-        $exists = collect(DB::select("SHOW INDEX FROM {$table} WHERE Key_name = '{$indexName}'"))->isNotEmpty();
+        $exists = Schema::hasIndex($table, $indexName);
         
         if (!$exists) {
             Schema::table($table, function (Blueprint $table) use ($columns, $indexName) {
@@ -30,7 +30,12 @@ return new class extends Migration
 
     private function addFullTextIfNotExists(string $table, array $columns, string $indexName): void
     {
-        $exists = collect(DB::select("SHOW INDEX FROM {$table} WHERE Key_name = '{$indexName}'"))->isNotEmpty();
+        // SQLite has no FULLTEXT indexes
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
+        $exists = Schema::hasIndex($table, $indexName);
         
         if (!$exists) {
             Schema::table($table, function (Blueprint $table) use ($columns, $indexName) {

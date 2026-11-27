@@ -13,6 +13,10 @@ class UserDashboardController extends Controller
     {
         $user = $request->user();
 
+        if ($user->isSeller()) {
+            return redirect()->route('seller.dashboard');
+        }
+
         // Order summary
         $orderSummary = [
             'total' => $user->orders()->count(),

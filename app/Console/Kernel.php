@@ -66,17 +66,8 @@ class Kernel extends ConsoleKernel
                      \Log::error('Backup cleanup failed');
                  });
 
-        // Cancel pending orders older than 24 hours - runs hourly
-        $schedule->command('order:cleanup-pending')
-                 ->hourly()
-                 ->withoutOverlapping()
-                 ->runInBackground()
-                 ->onSuccess(function () {
-                     \Log::info('Pending orders cleanup completed');
-                 })
-                 ->onFailure(function () {
-                     \Log::error('Pending orders cleanup failed');
-                 });
+        // Unpaid online orders are expired by payments:expire-unpaid, scheduled in
+        // routes/console.php (Laravel 12 reads the schedule from there, not this file).
 
         // Clear expired sessions daily at 04:00 AM
         $schedule->command('session:clear-expired')

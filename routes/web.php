@@ -162,6 +162,30 @@ Route::get('/books', [BookController::class, 'index'])->name('books.index');
 // Category browsing (public)
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 
+// IP-6: Google sign-in (Socialite)
+Route::middleware(['guest', 'throttle:20,1'])->group(function () {
+    Route::get('/auth/google/redirect', [\App\Integrations\GoogleSignIn\GoogleSignInController::class, 'redirect'])->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [\App\Integrations\GoogleSignIn\GoogleSignInController::class, 'callback'])->name('auth.google.callback');
+});
+
+// IP-3: PayMongo webhook (no login, no CSRF; protected by its signature header)
+Route::post('/webhooks/paymongo', \App\Integrations\PayMongo\WebhookController::class)
+    ->middleware('throttle:120,1')->name('webhooks.paymongo');
+
+// IP-2: buyer's side of a PayMongo payment
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/orders/{order}/pay', [\App\Integrations\PayMongo\PaymentController::class, 'pay'])->name('orders.pay');
+    Route::get('/payments/{reference}/return', [\App\Integrations\PayMongo\PaymentController::class, 'return'])->name('payments.return');
+    Route::get('/payments/{reference}/cancelled', [\App\Integrations\PayMongo\PaymentController::class, 'cancelled'])->name('payments.cancelled');
+});
+
+// REST API token management
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/api-tokens', [\App\Integrations\RestApi\Controllers\ApiTokenController::class, 'index'])->name('api-tokens.index');
+    Route::post('/api-tokens', [\App\Integrations\RestApi\Controllers\ApiTokenController::class, 'store'])->name('api-tokens.store');
+    Route::delete('/api-tokens/{tokenId}', [\App\Integrations\RestApi\Controllers\ApiTokenController::class, 'destroy'])->whereNumber('tokenId')->name('api-tokens.destroy');
+});
+
 // ─── Authenticated Routes ────────────────────────────────────────
 Route::middleware('auth')->group(function () {
     // User Dashboard (customer)
@@ -201,7 +225,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
         Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-        Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        // Admins or the order's seller (checked by OrderPolicy::updateStatus)
+        Route::match(['put', 'patch'], '/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::delete('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
         Route::post('/orders/track', [OrderController::class, 'track'])->name('orders.track');
         Route::get('/orders/statistics', [OrderController::class, 'statistics'])->name('orders.statistics');
@@ -221,6 +246,15 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin', 'verified'])->group(function () {
     // Admin Dashboard
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+    // REST API documentation (Swagger UI) and its OpenAPI specification
+    Route::get('/admin/api-docs', [\App\Integrations\RestApi\Controllers\ApiDocsController::class, 'index'])->name('admin.api-docs');
+    Route::get('/admin/api-docs/openapi.json', [\App\Integrations\RestApi\Controllers\ApiDocsController::class, 'spec'])->name('admin.api-docs.spec');
+
+    // Seller account review
+    Route::get('/admin/sellers', [\App\Http\Controllers\Admin\SellerController::class, 'index'])->name('admin.sellers.index');
+    Route::post('/admin/sellers/{seller}/approve', [\App\Http\Controllers\Admin\SellerController::class, 'approve'])->name('admin.sellers.approve');
+    Route::post('/admin/sellers/{seller}/suspend', [\App\Http\Controllers\Admin\SellerController::class, 'suspend'])->name('admin.sellers.suspend');
 
     // Lab 6 - Data Management Routes
     Route::prefix('admin')->group(function () {
@@ -291,19 +325,27 @@ Route::middleware(['auth', 'admin', 'verified'])->group(function () {
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
-    // Book management
+});
+
+// ─── Book listing management (admins and approved sellers) ──────
+// BookPolicy decides who may create, and lets sellers edit only their own listings.
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
+    // IP-1: Google Books lookup used by the Add Listing form
+    Route::get('/books/isbn-lookup', \App\Integrations\IsbnLookup\IsbnLookupController::class)
+        ->middleware('throttle:30,1')->name('books.isbn-lookup');
     Route::post('/books', [BookController::class, 'store'])->name('books.store');
     Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
     Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
     Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
-    
-    // Admin stock management
     Route::post('/books/{book}/out-of-stock', [BookController::class, 'markOutOfStock'])->name('books.outOfStock');
     Route::post('/books/{book}/restock', [BookController::class, 'restock'])->name('books.restock');
+});
 
-    // Order status management (admin)
-    Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+// ─── Seller Routes ──────────────────────────────────────────────
+Route::middleware(['auth', 'verified', 'seller'])->prefix('seller')->name('seller.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Seller\SellerDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/books', [\App\Http\Controllers\Seller\SellerDashboardController::class, 'books'])->name('books');
 });
 
 // Public wildcard routes (Show) - Must be after specific routes like /create

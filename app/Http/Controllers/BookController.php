@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Integrations\IsbnLookup\CoverDownloader;
 use App\Models\Book;
 use App\Models\Category;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class BookController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Book::with('category')
+        $query = Book::with(['category', 'seller:id,name,store_name'])
+            ->visible()
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
 
@@ -78,8 +81,8 @@ class BookController extends Controller
         
         // Get price range for filters
         $priceRange = [
-            'min' => Book::min('price'),
-            'max' => Book::max('price')
+            'min' => Book::visible()->min('price'),
+            'max' => Book::visible()->max('price')
         ];
 
         return view('books.index', compact('books', 'categories', 'priceRange'));
@@ -95,31 +98,56 @@ class BookController extends Controller
     public function store(Request $request)
     {
         \Illuminate\Support\Facades\Gate::authorize('create', Book::class);
+
+        // Sellers own the listings they create; admin-created books are store stock.
+        $sellerId = $request->user()->isSeller() ? $request->user()->id : null;
+
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'isbn' => 'required|string|unique:books',
+            'publisher' => 'nullable|string|max:255',
+            'isbn' => ['required', 'string', 'max:20', $this->uniqueIsbnRule($sellerId)],
             'price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'description' => 'nullable|string',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            // Filled in by the ISBN lookup (IP-1) on the form:
+            'cover_url' => 'nullable|string|max:2048',
+            'isbn_lookup_used' => 'nullable|boolean',
+            'form_started_at' => 'nullable|integer',
+        ], [
+            'isbn.unique' => 'You already have a listing with this ISBN.',
         ]);
 
-        // Process cover image using ImageService
+        // An uploaded cover wins; otherwise use the cover found by the ISBN lookup.
         if ($request->hasFile('cover_image')) {
             $validated['cover_image'] = ImageService::processBookCover($request->file('cover_image'));
+        } elseif (!empty($validated['cover_url'])) {
+            $validated['cover_image'] = app(CoverDownloader::class)->download($validated['cover_url']);
         }
+
+        $validated['seller_id'] = $sellerId;
+        $validated['isbn_lookup_used'] = $request->boolean('isbn_lookup_used');
+        // How long the form took to fill in, to compare lookup and manual entry (Objective 2).
+        $validated['listing_seconds'] = $this->secondsSince($validated['form_started_at'] ?? null);
+        unset($validated['cover_url'], $validated['form_started_at']);
 
         Book::create($validated);
 
-        return redirect()->route('books.index')
+        return redirect()->route($request->user()->isSeller() ? 'seller.books' : 'books.index')
             ->with('success', 'Book added successfully!');
     }
 
     public function show(Book $book)
     {
-        $book->load(['category', 'reviews.user']);
+        // Hidden listings (inactive, or seller not approved) are only visible to
+        // the people who can manage them.
+        if (!$book->isVisible() && !auth()->user()?->can('update', $book)) {
+            abort(404);
+        }
+
+        $book->load(['category', 'seller:id,name,store_name', 'reviews.user']);
         return view('books.show', compact('book'));
     }
 
@@ -137,11 +165,14 @@ class BookController extends Controller
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'isbn' => 'required|string|unique:books,isbn,' . $book->id,
+            'publisher' => 'nullable|string|max:255',
+            'isbn' => ['required', 'string', 'max:20', $this->uniqueIsbnRule($book->seller_id, $book->id)],
             'price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'description' => 'nullable|string',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ], [
+            'isbn.unique' => 'This seller already has a listing with this ISBN.',
         ]);
 
         // Handle image update
@@ -168,7 +199,7 @@ class BookController extends Controller
         
         $book->delete();
 
-        return redirect()->route('books.index')
+        return redirect()->route(auth()->user()->isSeller() ? 'seller.books' : 'books.index')
             ->with('success', 'Book deleted successfully!');
     }
 
@@ -198,5 +229,25 @@ class BookController extends Controller
         $book->update(['stock_quantity' => $validated['stock_quantity']]);
 
         return redirect()->back()->with('success', 'Book restocked successfully.');
+    }
+
+    /** An ISBN may appear once per seller (several sellers can sell the same book). */
+    private function uniqueIsbnRule(?int $sellerId, ?int $ignoreBookId = null)
+    {
+        return Rule::unique('books', 'isbn')
+            ->where(fn ($q) => $sellerId === null ? $q->whereNull('seller_id') : $q->where('seller_id', $sellerId))
+            ->ignore($ignoreBookId);
+    }
+
+    /** Seconds since the form was opened (milliseconds timestamp from the browser), within sane bounds. */
+    private function secondsSince(?int $startedAtMs): ?int
+    {
+        if (!$startedAtMs) {
+            return null;
+        }
+
+        $seconds = (int) round((now()->getTimestampMs() - $startedAtMs) / 1000);
+
+        return $seconds > 0 && $seconds < 86400 ? $seconds : null;
     }
 }

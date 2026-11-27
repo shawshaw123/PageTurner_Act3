@@ -2,19 +2,21 @@
 
 namespace App\Notifications;
 
+use App\Integrations\Email\TracksDelivery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class OrderPlacedNotification extends Notification
+class OrderPlacedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, TracksDelivery;
 
     protected $order;
 
     public function __construct($order)
     {
+        $this->markQueued();
         $this->order = $order;
     }
 

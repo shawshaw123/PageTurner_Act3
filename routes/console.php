@@ -14,6 +14,13 @@ Schedule::command('app:refresh-materialized-views')
     ->hourly()
     ->withoutOverlapping();
 
+// Scheduler (Figure 4.1): expire unpaid online orders and return their stock.
+// Run "php artisan schedule:work" locally, or a cron entry calling
+// "php artisan schedule:run" every minute on the server.
+Schedule::command('payments:expire-unpaid')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
 Artisan::command('app:refresh-materialized-views', function () {
     $this->info('Refreshing materialized views...');
     

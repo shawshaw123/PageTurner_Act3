@@ -20,10 +20,14 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $query = Order::with(['user', 'orderItems.book'])->orderBy('created_at', 'desc');
-        
-        if (!auth()->user()->isAdmin()) {
-            $query->where('user_id', auth()->id());
+        $query = Order::with(['user', 'seller:id,name,store_name', 'orderItems.book'])->orderBy('created_at', 'desc');
+        $user = auth()->user();
+
+        if ($user->isSeller()) {
+            // Sellers see the orders they have to fulfil.
+            $query->where('seller_id', $user->id);
+        } elseif (!$user->isAdmin()) {
+            $query->where('user_id', $user->id);
         }
 
         $orders = $query->paginate(10);
@@ -42,7 +46,15 @@ class OrderController extends Controller
         ]);
 
         $book = Book::findOrFail($validated['book_id']);
-        
+
+        if (!$book->isVisible()) {
+            abort(404);
+        }
+
+        if ($book->seller_id !== null && $book->seller_id === auth()->id()) {
+            return back()->with('error', 'You cannot buy your own listing.');
+        }
+
         if ($book->stock_quantity < $validated['quantity']) {
             return back()->with('error', 'Sorry, only ' . $book->stock_quantity . ' copies available.');
         }
@@ -51,6 +63,7 @@ class OrderController extends Controller
 
         $order = Order::create([
             'user_id' => auth()->id(),
+            'seller_id' => $book->seller_id,
             'total_amount' => $totalAmount,
             'status' => 'pending',
             'payment_method' => 'cash_on_delivery',
@@ -71,9 +84,12 @@ class OrderController extends Controller
         $order->load('user');
         auth()->user()->notify(new OrderPlacedNotification($order));
 
-        // Notify all admins
-        $admins = User::where('role', 'admin')->get();
-        Notification::send($admins, new NewOrderAdminNotification($order));
+        // Notify admins and the seller
+        $recipients = User::where('role', 'admin')->get();
+        if ($book->seller) {
+            $recipients = $recipients->concat([$book->seller])->unique('id');
+        }
+        Notification::send($recipients, new NewOrderAdminNotification($order));
 
         return redirect()->route('orders.show', $order)
             ->with('success', 'Order placed successfully! Order #' . $order->id);
@@ -87,8 +103,8 @@ class OrderController extends Controller
         // Ensure user can only view their own orders
         \Illuminate\Support\Facades\Gate::authorize('view', $order);
 
-        $order->load(['user', 'orderItems.book']);
-        
+        $order->load(['user', 'seller:id,name,store_name', 'orderItems.book']);
+
         return view('orders.show', compact('order'));
     }
 
@@ -97,25 +113,31 @@ class OrderController extends Controller
      */
     public function updateStatus(Request $request, Order $order)
     {
-        // Only admins can update order status
+        // Admins, or the seller who owns this order
         \Illuminate\Support\Facades\Gate::authorize('updateStatus', $order);
 
         $validated = $request->validate([
-            'status' => 'required|in:pending,processing,shipped,completed,cancelled',
+            'status' => 'required|in:' . implode(',', Order::STATUSES),
             'notes' => 'nullable|string|max:500',
         ]);
+
+        if ($error = $order->statusChangeError($validated['status'])) {
+            return back()->with('error', $error);
+        }
 
         $oldStatus = $order->status;
         $order->update([
             'status' => $validated['status'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
+            'notes' => $validated['notes'] ?? $order->notes,
+        ] + $order->paymentChangesFor($validated['status']));
 
         // Send notification to order owner
-        $order->user->notify(new OrderStatusChangedNotification($order, $oldStatus));
+        if ($oldStatus !== $order->status) {
+            $order->user->notify(new OrderStatusChangedNotification($order, $oldStatus));
+        }
 
         // Log status change
-        \Log::info("Order #{$order->id} status changed from {$oldStatus} to {$validated['status']} by admin " . auth()->user()->email);
+        \Log::info("Order #{$order->id} status changed from {$oldStatus} to {$validated['status']} by " . auth()->user()->role . " " . auth()->user()->email);
 
         return redirect()->route('orders.show', $order)
             ->with('success', 'Order status updated successfully!');

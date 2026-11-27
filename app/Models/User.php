@@ -12,6 +12,7 @@ class User extends Authenticatable implements MustVerifyEmail, Auditable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
+    use \Laravel\Sanctum\HasApiTokens;
     use \OwenIt\Auditing\Auditable;
 
     /**
@@ -22,6 +23,9 @@ class User extends Authenticatable implements MustVerifyEmail, Auditable
         'email',
         'password',
         'role',
+        'store_name',
+        'store_description',
+        'seller_status',
         'two_factor_secret',
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
@@ -61,6 +65,30 @@ class User extends Authenticatable implements MustVerifyEmail, Auditable
         return $this->hasMany(Review::class);
     }
 
+    /**
+     * Verified purchase: the user has received this book (it is in one of their
+     * orders that was shipped or completed). Only then may they review it.
+     */
+    public function hasPurchased(Book $book): bool
+    {
+        return $this->orders()
+            ->whereIn('status', ['shipped', 'completed'])
+            ->whereHas('orderItems', fn ($q) => $q->where('book_id', $book->id))
+            ->exists();
+    }
+
+    /** Book listings owned by this seller. */
+    public function books()
+    {
+        return $this->hasMany(Book::class, 'seller_id');
+    }
+
+    /** Orders this seller has to fulfil. */
+    public function sellerOrders()
+    {
+        return $this->hasMany(Order::class, 'seller_id');
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────
 
     public function isAdmin(): bool
@@ -71,6 +99,38 @@ class User extends Authenticatable implements MustVerifyEmail, Auditable
     public function isCustomer(): bool
     {
         return $this->role === 'customer';
+    }
+
+    /** Buyers are stored with the "customer" role. */
+    public function isBuyer(): bool
+    {
+        return $this->isCustomer();
+    }
+
+    public function isSeller(): bool
+    {
+        return $this->role === 'seller';
+    }
+
+    /** A seller an admin has approved; only these can list books and receive orders. */
+    public function isApprovedSeller(): bool
+    {
+        return $this->isSeller() && $this->seller_status === 'approved';
+    }
+
+    /** Name shown to buyers for this seller's store. */
+    public function getStoreDisplayNameAttribute(): string
+    {
+        return $this->store_name ?: $this->name;
+    }
+
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'admin' => 'Admin',
+            'seller' => 'Seller',
+            default => 'Buyer',
+        };
     }
 
     public function hasTwoFactorEnabled(): bool
@@ -98,6 +158,7 @@ class User extends Authenticatable implements MustVerifyEmail, Auditable
             'name',
             'email',
             'role',
+            'seller_status',
             'email_verified_at',
             'two_factor_confirmed_at',
         ];

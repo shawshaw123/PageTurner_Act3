@@ -16,6 +16,8 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    use CompletesLogin;
+
     /**
      * Display the login view.
      */
@@ -54,37 +56,8 @@ class AuthenticatedSessionController extends Controller
 
         RateLimiter::clear($throttleKey);
 
-        $user = Auth::user();
-
-        // Check if 2FA is enabled
-        if ($user->hasTwoFactorEnabled()) {
-            // Logout the user temporarily
-            Auth::logout();
-
-            // Store user ID in session for 2FA challenge
-            $request->session()->put('2fa:user:id', $user->id);
-            $request->session()->put('2fa:remember', $request->boolean('remember'));
-
-            // Generate and send OTP
-            $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            Cache::put("2fa_code_{$user->id}", $code, now()->addMinutes(10));
-
-            Mail::raw("Your PageTurner 2FA verification code is: {$code}\n\nThis code expires in 10 minutes.", function ($message) use ($user) {
-                $message->to($user->email)
-                        ->subject('PageTurner - Two-Factor Authentication Code');
-            });
-
-            return redirect()->route('two-factor.challenge');
-        }
-
-        $request->session()->regenerate();
-
-        // Redirect based on role
-        if ($user->isAdmin()) {
-            return redirect()->intended(route('admin.dashboard'));
-        }
-
-        return redirect()->intended(route('user.dashboard'));
+        // Two-factor challenge if enabled, then the dashboard for the role.
+        return $this->completeLogin($request, Auth::user(), $request->boolean('remember'));
     }
 
     /**

@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\CheckoutException;
+use App\Integrations\PayMongo\PaymentException;
+use App\Integrations\PayMongo\PaymentService;
 use App\Models\Book;
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\User;
-use App\Notifications\OrderPlacedNotification;
-use App\Notifications\NewOrderAdminNotification;
+use App\Services\CheckoutService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
 
 class CartController extends Controller
 {
@@ -64,7 +63,15 @@ class CartController extends Controller
         $quantity = (int) $request->input('quantity', 1);
         
         $book = Book::findOrFail($bookId);
-        
+
+        if (!$book->isVisible()) {
+            abort(404);
+        }
+
+        if (Auth::user()->isSeller()) {
+            return back()->with('error', 'Seller accounts cannot place orders. Please use a buyer account to shop.');
+        }
+
         if ($book->stock_quantity < $quantity) {
             return back()->with('error', 'Sorry, only ' . $book->stock_quantity . ' copies available in stock.');
         }
@@ -188,7 +195,7 @@ class CartController extends Controller
     /**
      * Process the order
      */
-    public function processOrder(Request $request)
+    public function processOrder(Request $request, CheckoutService $checkout, PaymentService $payments)
     {
         if (!Auth::check()) {
             return redirect()->route('login')->with('info', 'Please login to complete your order.');
@@ -202,64 +209,47 @@ class CartController extends Controller
 
         $request->validate([
             'shipping_address' => 'required|string|min:10|max:255',
-            'payment_method' => 'required|in:credit_card,paypal,cash_on_delivery'
+            'payment_method' => ['required', Rule::in(Order::PAYMENT_METHODS)],
         ]);
 
+        if ($request->payment_method === 'paymongo' && !$payments->isConfigured()) {
+            return back()->withInput()->with('error', 'Online payment is not available right now. Please choose cash on delivery.');
+        }
+
+        // One order per seller; see CheckoutService.
         try {
-            // Create order
-            $order = Order::create([
-                'user_id' => Auth::id(),
-                'total_amount' => 0, // Will be calculated
-                'status' => 'pending',
-                'shipping_address' => $request->shipping_address,
-                'payment_method' => $request->payment_method,
-            ]);
-
-            $totalAmount = 0;
-
-            // Create order items and update stock
-            foreach ($cart as $bookId => $quantity) {
-                $book = Book::findOrFail($bookId);
-                
-                if ($book->stock_quantity < $quantity) {
-                    // Rollback order creation
-                    $order->delete();
-                    return redirect()->route('cart.index')->with('error', 'Some items are no longer in stock. Please update your cart.');
-                }
-
-                // Create order item
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'book_id' => $book->id,
-                    'quantity' => $quantity,
-                    'price' => $book->price,
-                ]);
-
-                $totalAmount += $book->price * $quantity;
-
-                // Update book stock
-                $book->decrement('stock_quantity', $quantity);
-            }
-
-            // Update order total
-            $order->update(['total_amount' => $totalAmount]);
-
-            // Clear cart
-            session()->forget('cart');
-
-            // Send notifications
-            $order->load('user');
-            Auth::user()->notify(new OrderPlacedNotification($order));
-
-            // Notify all admins
-            $admins = User::where('role', 'admin')->get();
-            Notification::send($admins, new NewOrderAdminNotification($order));
-
-            return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully! Order #' . $order->id);
-
-        } catch (\Exception $e) {
+            $orders = $checkout->placeOrders(Auth::user(), $cart, $request->shipping_address, $request->payment_method);
+        } catch (CheckoutException $e) {
+            return redirect()->route('cart.index')->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
             return redirect()->route('cart.checkout')->with('error', 'There was an error processing your order. Please try again.');
         }
+
+        // IP-2: online payment. Send the buyer to PayMongo's payment page.
+        if ($request->payment_method === 'paymongo') {
+            try {
+                $payment = $payments->startCheckout($orders, Auth::user());
+            } catch (PaymentException $e) {
+                // Nothing was charged: release the stock and keep the cart so the buyer can try again.
+                $payments->cancelOrders($orders, 'failed', 'Online payment could not be started.');
+                return redirect()->route('cart.checkout')->with('error', $e->getMessage());
+            }
+
+            session()->forget('cart');
+
+            return redirect()->away($payment->checkout_url);
+        }
+
+        session()->forget('cart');
+
+        if ($orders->count() === 1) {
+            return redirect()->route('orders.show', $orders->first())
+                ->with('success', 'Order placed successfully! Order #' . $orders->first()->id);
+        }
+
+        return redirect()->route('orders.index')
+            ->with('success', 'Your checkout was split into ' . $orders->count() . ' orders, one per seller: #' . $orders->pluck('id')->implode(', #'));
     }
 
     /**

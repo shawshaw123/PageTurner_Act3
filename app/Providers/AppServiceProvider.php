@@ -41,6 +41,16 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Review::class, ReviewPolicy::class);
 
+        // IP-4: log every email sent through the queue, with its delivery time.
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Notifications\Events\NotificationSent::class,
+            [\App\Integrations\Email\LogNotificationDelivery::class, 'handleSent']
+        );
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Notifications\Events\NotificationFailed::class,
+            [\App\Integrations\Email\LogNotificationDelivery::class, 'handleFailed']
+        );
+
         // API Rate Limiting Tiers (Lab 6)
         RateLimiter::for('api', function (Request $request) {
             $user = $request->user();
@@ -49,15 +59,11 @@ class AppServiceProvider extends ServiceProvider
                 return Limit::perMinute(30)->by($request->ip()); // Visitors
             }
 
-            if ($user->hasRole('admin')) {
+            if ($user->isAdmin()) {
                 return Limit::perMinute(1000)->by($user->id); // Admin
             }
 
-            if ($user->hasRole('premium')) {
-                return Limit::perMinute(300)->by($user->id); // Premium
-            }
-
-            return Limit::perMinute(60)->by($user->id); // Standard
+            return Limit::perMinute(60)->by($user->id); // Buyers and sellers
         });
 
         RateLimiter::for('auth', function (Request $request) {

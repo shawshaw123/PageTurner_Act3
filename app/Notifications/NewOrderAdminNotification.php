@@ -2,18 +2,21 @@
 
 namespace App\Notifications;
 
+use App\Integrations\Email\TracksDelivery;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewOrderAdminNotification extends Notification
+class NewOrderAdminNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, TracksDelivery;
 
     protected $order;
 
     public function __construct($order)
     {
+        $this->markQueued();
         $this->order = $order;
     }
 
@@ -26,7 +29,7 @@ class NewOrderAdminNotification extends Notification
     {
         return (new MailMessage)
             ->subject('New Order Received - #' . $this->order->id)
-            ->greeting('Hello Admin!')
+            ->greeting('Hello ' . $notifiable->name . '!')
             ->line('A new order has been placed by ' . $this->order->user->name . '.')
             ->line('Order #' . $this->order->id)
             ->line('Total Amount: ₱' . number_format($this->order->total_amount, 2))

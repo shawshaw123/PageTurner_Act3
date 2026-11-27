@@ -87,7 +87,7 @@
             </div>
         </form>
         
-        @if(auth()->user() && auth()->user()->isAdmin())
+        @can('update', $book)
             <div class="mt-6 border-t pt-4">
                 <h3 class="text-lg font-semibold mb-3">Stock management</h3>
 
@@ -103,7 +103,7 @@
                     <button type="submit" class="ml-2 bg-brand-darkgreen text-white px-4 py-2 rounded hover:bg-brand-amber hover:text-brand-darkgreen transition">Restock</button>
                 </form>
             </div>
-        @endif
+        @endcan
     </div>
 </div>
 @endsection

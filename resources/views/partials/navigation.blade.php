@@ -21,7 +21,7 @@
                     <a href="{{ route('ai.chat') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors font-semibold text-brand-amber flex items-center gap-1">
                         AI Chat
                     </a>
-                    
+
                     @auth
                         @if(auth()->user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors font-medium">
@@ -33,6 +33,24 @@
                             <a href="{{ route('categories.create') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors">
                                 Add Category
                             </a>
+                            <a href="{{ route('admin.sellers.index') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors">
+                                Sellers
+                            </a>
+                            <a href="{{ route('admin.api-docs') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors">
+                                API Docs
+                            </a>
+                        @elseif(auth()->user()->isSeller())
+                            <a href="{{ route('seller.dashboard') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors font-medium">
+                                Seller Dashboard
+                            </a>
+                            @if(auth()->user()->isApprovedSeller())
+                                <a href="{{ route('seller.books') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors">
+                                    My Listings
+                                </a>
+                                <a href="{{ route('books.create') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors">
+                                    Add Listing
+                                </a>
+                            @endif
                         @else
                             <a href="{{ route('user.dashboard') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors font-medium">
                                 Dashboard
@@ -54,7 +72,8 @@
                 @endguest
                 
                 @auth
-                    <!-- Cart Link -->
+                    <!-- Cart Link (sellers don't buy from this account) -->
+                    @unless(auth()->user()->isSeller())
                     <a href="{{ route('cart.index') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors relative">
                         <svg class="w-5 h-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -69,12 +88,13 @@
                             </span>
                         @endif
                     </a>
-                    
+                    @endunless
+
                     <a href="{{ route('orders.index') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors">
-                        My Orders
+                        {{ auth()->user()->isBuyer() ? 'My Orders' : 'Orders' }}
                     </a>
 
-                    @if(auth()->user()->isAdmin())
+                    @if(auth()->user()->isAdmin() || auth()->user()->isSeller())
                         <!-- Notifications Link -->
                         <a href="{{ route('notifications.index') }}" class="hover:bg-brand-amber hover:text-brand-darkgreen px-3 py-2 rounded-md transition-colors relative">
                             <svg class="w-5 h-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,13 +125,12 @@
                             <div class="px-4 py-2 border-b border-gray-100">
                                 <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
                                 <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
-                                @if(auth()->user()->isAdmin())
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 mt-1">
-                                        Admin
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1">
-                                        Customer
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 {{ match(auth()->user()->role) { 'admin' => 'bg-purple-100 text-purple-800', 'seller' => 'bg-amber-100 text-amber-800', default => 'bg-blue-100 text-blue-800' } }}">
+                                    {{ auth()->user()->role_label }}
+                                </span>
+                                @if(auth()->user()->isSeller() && !auth()->user()->isApprovedSeller())
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 mt-1">
+                                        {{ ucfirst(auth()->user()->seller_status ?? 'pending') }}
                                     </span>
                                 @endif
                             </div>
@@ -122,6 +141,9 @@
                             </a>
                             <a href="{{ route('two-factor.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                                 Two-Factor Auth
+                            </a>
+                            <a href="{{ route('api-tokens.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                API Tokens
                             </a>
                             
                             @if(auth()->user()->isAdmin())

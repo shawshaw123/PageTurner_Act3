@@ -14,6 +14,12 @@ class ReviewController extends Controller
 {
     public function store(Request $request, Book $book)
     {
+        // Verified purchase: only buyers who received this book may review it.
+        if (!$request->user()->hasPurchased($book)) {
+            return redirect()->route('books.show', $book)
+                ->with('error', 'You can review this book after an order containing it has been shipped or completed.');
+        }
+
         $validated = $request->validate([
             'comment' => 'required|string|max:1000',
             'rating' => 'required|integer|min:1|max:5',

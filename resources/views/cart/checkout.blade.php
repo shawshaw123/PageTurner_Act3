@@ -82,24 +82,23 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Method</h2>
                 
                 <div class="space-y-3">
-                    <label class="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
-                        <input type="radio" name="payment_method" value="credit_card" class="mr-3 text-brand-darkgreen focus:ring-brand-darkgreen" checked>
+                    @php $onlinePayment = app(\App\Integrations\PayMongo\PaymentService::class)->isConfigured(); @endphp
+                    <label class="flex items-center p-3 border border-gray-200 rounded-md {{ $onlinePayment ? 'cursor-pointer hover:bg-gray-50' : 'opacity-60 cursor-not-allowed' }} transition-colors">
+                        <input type="radio" name="payment_method" value="paymongo" class="mr-3 text-brand-darkgreen focus:ring-brand-darkgreen" @checked($onlinePayment && old('payment_method', 'paymongo') === 'paymongo') @disabled(!$onlinePayment)>
                         <div>
-                            <div class="font-medium">Credit Card</div>
-                            <div class="text-sm text-gray-500">Visa, Mastercard, American Express</div>
+                            <div class="font-medium">Pay online with PayMongo</div>
+                            <div class="text-sm text-gray-500">
+                                @if($onlinePayment)
+                                    GCash, Maya, GrabPay, QR Ph or card. You'll be taken to PayMongo's secure payment page.
+                                @else
+                                    Not available right now.
+                                @endif
+                            </div>
                         </div>
                     </label>
-                    
+
                     <label class="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
-                        <input type="radio" name="payment_method" value="paypal" class="mr-3 text-brand-darkgreen focus:ring-brand-darkgreen">
-                        <div>
-                            <div class="font-medium">PayPal</div>
-                            <div class="text-sm text-gray-500">Fast and secure payment</div>
-                        </div>
-                    </label>
-                    
-                    <label class="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
-                        <input type="radio" name="payment_method" value="cash_on_delivery" class="mr-3 text-brand-darkgreen focus:ring-brand-darkgreen">
+                        <input type="radio" name="payment_method" value="cash_on_delivery" class="mr-3 text-brand-darkgreen focus:ring-brand-darkgreen" @checked(!$onlinePayment || old('payment_method') === 'cash_on_delivery')>
                         <div>
                             <div class="font-medium">Cash on Delivery</div>
                             <div class="text-sm text-gray-500">Pay when you receive your order</div>

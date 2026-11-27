@@ -35,7 +35,7 @@ class CategoryController extends Controller
 
     public function show(Category $category)
     {
-        $books = $category->books()->paginate(12);
+        $books = $category->books()->visible()->paginate(12);
         return view('categories.show', compact('category', 'books'));
     }
 

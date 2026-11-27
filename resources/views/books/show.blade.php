@@ -41,6 +41,9 @@
             
             <h1 class="text-4xl font-extrabold text-gray-900 mt-4 leading-tight">{{ $book->title }}</h1>
             <p class="text-2xl text-gray-500 mt-2 italic font-serif">by {{ $book->author }}</p>
+            @if($book->seller)
+                <p class="text-sm text-gray-500 mt-3">Sold by <span class="font-semibold text-brand-darkgreen">{{ $book->seller->store_display_name }}</span></p>
+            @endif
             
             {{-- Rating Summary --}}
             <div class="flex items-center mt-6 py-2 border-y border-gray-50">
@@ -137,7 +140,7 @@
             
             {{-- Admin Actions --}}
             @auth
-                @if(auth()->user()->isAdmin())
+                @can('update', $book)
                     <div class="mt-10 flex flex-wrap gap-4 pt-8 border-t border-gray-100">
                         <a href="{{ route('books.edit', $book) }}" class="flex items-center px-4 py-2 bg-yellow-400 text-yellow-900 rounded-md font-bold hover:bg-yellow-500 transition shadow-sm">
                             <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -152,7 +155,7 @@
                             </button>
                         </form>
                     </div>
-                @endif
+                @endcan
             @endauth
         </div>
     </div>
@@ -164,14 +167,21 @@
         <h2 class="text-2xl font-bold">Customer Reviews</h2>
         
         @auth
-            <a href="#review-form" class="bg-brand-darkgreen text-white px-4 py-2 rounded hover:bg-brand-amber hover:text-brand-darkgreen transition-colors">
-                ✍️ Write a Review
-            </a>
+            @if(auth()->user()->hasPurchased($book))
+                <a href="#review-form" class="bg-brand-darkgreen text-white px-4 py-2 rounded hover:bg-brand-amber hover:text-brand-darkgreen transition-colors">
+                    ✍️ Write a Review
+                </a>
+            @endif
         @endauth
     </div>
-    
-    {{-- Review Form (for authenticated users) --}}
+
+    {{-- Review Form: verified purchases only (the book was in a shipped or completed order) --}}
     @auth
+        @unless(auth()->user()->hasPurchased($book))
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p class="text-blue-800">Only buyers who received this book can review it. Your review form appears here once an order with this book is shipped or completed.</p>
+        </div>
+        @else
         <div id="review-form" class="bg-white rounded-lg shadow p-6 mb-6">
             <h3 class="font-semibold text-lg mb-4">Write a Review</h3>
             <form action="{{ route('reviews.store', $book) }}" method="POST">
@@ -199,6 +209,7 @@
                 </button>
             </form>
         </div>
+        @endunless
     @else
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p class="text-blue-800">

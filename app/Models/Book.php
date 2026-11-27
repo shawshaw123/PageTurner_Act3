@@ -56,6 +56,7 @@ class Book extends Model implements Auditable
 
     protected $fillable = [
         'category_id',
+        'seller_id',
         'title',
         'author',
         'isbn',
@@ -71,11 +72,18 @@ class Book extends Model implements Auditable
         'language',
         'dimensions',
         'weight',
+        'isbn_lookup_used',
+        'listing_seconds',
     ];
 
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'seller_id');
     }
 
     public function reviews()
@@ -164,6 +172,29 @@ class Book extends Model implements Auditable
             'deleted',
             'restored',
         ];
+    }
+
+    /**
+     * Listings buyers and visitors may see: active, and either store stock
+     * (no seller) or owned by an approved seller.
+     */
+    public function scopeVisible(Builder $query): void
+    {
+        $query->where('books.is_active', true)
+            ->where(function (Builder $q) {
+                $q->whereNull('books.seller_id')
+                  ->orWhereHas('seller', fn (Builder $s) => $s->where('role', 'seller')->where('seller_status', 'approved'));
+            });
+    }
+
+    /** Whether this listing is visible to the public (see scopeVisible). */
+    public function isVisible(): bool
+    {
+        if (!$this->is_active) {
+            return false;
+        }
+
+        return $this->seller_id === null || (bool) $this->seller?->isApprovedSeller();
     }
 
     /**

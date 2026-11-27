@@ -2,19 +2,22 @@
 
 namespace App\Notifications;
 
+use App\Integrations\Email\TracksDelivery;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class OrderStatusChangedNotification extends Notification
+class OrderStatusChangedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, TracksDelivery;
 
     protected $order;
     protected $oldStatus;
 
     public function __construct($order, $oldStatus)
     {
+        $this->markQueued();
         $this->order = $order;
         $this->oldStatus = $oldStatus;
     }
