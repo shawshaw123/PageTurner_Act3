@@ -38,6 +38,7 @@ return [
 
     // IP-2 / IP-3: PayMongo Checkout Sessions and webhooks (use test keys: sk_test_...).
     'paymongo' => [
+        'demo_mode' => filter_var(env('PAYMONGO_DEMO_MODE', false), FILTER_VALIDATE_BOOLEAN),
         'secret_key' => env('PAYMONGO_SECRET_KEY'),
         'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET'), // whsk_... from the webhook you register
         'url' => env('PAYMONGO_API_URL', 'https://api.paymongo.com/v1'),

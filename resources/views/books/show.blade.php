@@ -181,6 +181,9 @@
 </div>
 
 {{-- Customer Reviews Section --}}
+@php
+    $hasPurchased = auth()->check() ? auth()->user()->hasPurchased($book) : false;
+@endphp
 <section id="reviews" class="mt-12" aria-labelledby="reviews-heading">
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
@@ -189,7 +192,7 @@
         </div>
 
         @auth
-            @if(auth()->user()->hasPurchased($book))
+            @if($hasPurchased)
                 <a href="#review-form" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-darkgreen text-white text-sm font-semibold hover:bg-brand-forest transition-colors">
                     Write a Review
                 </a>
@@ -199,7 +202,7 @@
 
     {{-- Review Form --}}
     @auth
-        @unless(auth()->user()->hasPurchased($book))
+        @unless($hasPurchased)
             <x-alert type="info" class="mb-6">
                 Only buyers who have received this book can leave a review. The review form unlocks once an order containing this book is shipped or completed.
             </x-alert>

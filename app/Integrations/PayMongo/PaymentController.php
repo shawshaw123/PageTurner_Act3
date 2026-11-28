@@ -56,6 +56,41 @@ class PaymentController extends Controller
         ]);
     }
 
+    /** GET /payments/{reference}/demo  (Local PayMongo Sandbox checkout page) */
+    public function demo(Request $request, string $reference, PaymentService $payments)
+    {
+        abort_unless($payments->isDemoMode(), 404);
+        $payment = $this->paymentFor($request, $reference);
+
+        if (!$payment->isOpen()) {
+            return redirect()->route('payments.return', $reference);
+        }
+
+        return view('payments.demo', [
+            'payment' => $payment,
+            'orders' => $payment->orders()->with(['orderItems.book', 'seller:id,name,store_name'])->get(),
+            'methods' => array_values(config('services.paymongo.payment_methods', ['gcash', 'card', 'paymaya', 'grab_pay', 'qrph'])),
+        ]);
+    }
+
+    /** POST /payments/{reference}/demo  (Complete or fail a simulated PayMongo payment) */
+    public function demoComplete(Request $request, string $reference, PaymentService $payments)
+    {
+        abort_unless($payments->isDemoMode(), 404);
+        $payment = $this->paymentFor($request, $reference);
+
+        $action = $request->input('action', 'pay');
+        $channel = strtoupper((string) $request->input('channel', 'GCASH'));
+
+        if ($action === 'fail') {
+            $payments->markFailed($payment, "Simulated {$channel} payment declined in local sandbox.");
+        } else {
+            $payments->markPaid($payment, 'pay_demo_' . \Illuminate\Support\Str::random(16));
+        }
+
+        return redirect()->route('payments.return', $reference);
+    }
+
     private function paymentFor(Request $request, string $reference): Payment
     {
         $payment = Payment::where('checkout_reference', $reference)->firstOrFail();
