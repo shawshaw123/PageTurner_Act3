@@ -251,6 +251,9 @@ Route::middleware(['auth', 'admin', 'verified'])->group(function () {
     Route::get('/admin/api-docs', [\App\Integrations\RestApi\Controllers\ApiDocsController::class, 'index'])->name('admin.api-docs');
     Route::get('/admin/api-docs/openapi.json', [\App\Integrations\RestApi\Controllers\ApiDocsController::class, 'spec'])->name('admin.api-docs.spec');
 
+    // Wireframe mock screens of the six integration points (no real API calls)
+    Route::view('/admin/integration-preview', 'admin.integration-preview')->name('admin.integration-preview');
+
     // Seller account review
     Route::get('/admin/sellers', [\App\Http\Controllers\Admin\SellerController::class, 'index'])->name('admin.sellers.index');
     Route::post('/admin/sellers/{seller}/approve', [\App\Http\Controllers\Admin\SellerController::class, 'approve'])->name('admin.sellers.approve');

@@ -14,6 +14,11 @@ views, notifications, migrations, tests) are listed under each integration.
 | IP-6 | Socialite login ↔ Google OAuth 2.0 | [`GoogleSignIn/`](GoogleSignIn/) | Done (needs Google OAuth client) |
 | — | Scheduler (cron): expire unpaid orders, return stock | [`PayMongo/ExpireUnpaidPaymentsCommand.php`](PayMongo/ExpireUnpaidPaymentsCommand.php) | Done |
 
+**Mock preview:** `/admin/integration-preview` (admin menu → *Integration Preview (Mock)*) shows a
+wireframe screen for each of IP-1 to IP-6. It runs entirely in the browser with made-up data and
+calls no real API, so it works for demos even without any keys. View:
+`resources/views/admin/integration-preview.blade.php`.
+
 Database tables from the figure: `payments`, `webhook_events`, `notification_logs`, `jobs`, `personal_access_tokens` (tokens),
 plus `users.google_id`, `orders.payment_status`, `orders.paid_at`, `books.isbn_lookup_used`, `books.listing_seconds`.
 Migration: `database/migrations/2026_11_27_100000_create_integration_tables.php`.

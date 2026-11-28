@@ -76,6 +76,7 @@
                                     <a href="{{ route('admin.api-rate-limits.index') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-sm hover:bg-brand-cream transition-colors">API Rate Limits</a>
                                     <a href="{{ route('admin.ai.dashboard') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-sm hover:bg-brand-cream transition-colors">AI Usage & Monitoring</a>
                                     <a href="{{ route('admin.api-docs') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-sm hover:bg-brand-cream transition-colors">REST API Docs (Swagger)</a>
+                                    <a href="{{ route('admin.integration-preview') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-sm hover:bg-brand-cream transition-colors">Integration Preview (Mock)</a>
                                 </div>
                             </div>
                         @elseif(auth()->user()->isSeller())
@@ -247,6 +248,7 @@
                     <a href="{{ route('admin.api-rate-limits.index') }}" class="{{ $mobileLink(request()->routeIs('admin.api-rate-limits.*')) }}">API Rate Limits</a>
                     <a href="{{ route('admin.ai.dashboard') }}" class="{{ $mobileLink(request()->routeIs('admin.ai.dashboard')) }}">AI Monitoring</a>
                     <a href="{{ route('admin.api-docs') }}" class="{{ $mobileLink(request()->routeIs('admin.api-docs')) }}">REST API Docs</a>
+                    <a href="{{ route('admin.integration-preview') }}" class="{{ $mobileLink(request()->routeIs('admin.integration-preview')) }}">Integration Preview</a>
                 @elseif(auth()->user()->isSeller())
                     <a href="{{ route('seller.dashboard') }}" class="{{ $mobileLink(request()->routeIs('seller.dashboard')) }}">Seller Hub</a>
                     @if(auth()->user()->isApprovedSeller())
