@@ -76,11 +76,25 @@
             <div class="space-y-3">
                 <label class="flex items-start gap-3 p-4 rounded-xl border border-brand-border {{ $onlinePayment ? 'cursor-pointer hover:bg-brand-paper has-[:checked]:border-brand-darkgreen has-[:checked]:bg-brand-cream/60' : 'opacity-60 cursor-not-allowed bg-stone-50' }} transition-colors">
                     <input type="radio" name="payment_method" value="paymongo" class="mt-1 text-brand-darkgreen focus:ring-brand-darkgreen" @checked($onlinePayment && old('payment_method', 'paymongo') === 'paymongo') @disabled(!$onlinePayment)>
-                    <div>
-                        <div class="text-sm font-semibold text-brand-ink">Pay online with PayMongo</div>
-                        <div class="text-xs text-brand-muted mt-0.5">
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-sm font-semibold text-brand-ink">Pay online with PayMongo</span>
                             @if($onlinePayment)
-                                GCash, Maya, GrabPay, QR Ph, or credit/debit card on PayMongo's secure checkout page.
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <span class="px-2 py-0.5 rounded bg-[#007DFE] text-white text-[10px] font-bold tracking-tight">GCash</span>
+                                    <span class="px-2 py-0.5 rounded bg-[#00B462] text-white text-[10px] font-bold tracking-tight">Maya</span>
+                                    <span class="px-2 py-0.5 rounded bg-[#00B14F] text-white text-[10px] font-bold tracking-tight">GrabPay</span>
+                                    <span class="px-2 py-0.5 rounded bg-[#0038A8] text-white text-[10px] font-bold tracking-tight">QR Ph</span>
+                                    <span class="px-2 py-0.5 rounded bg-[#1A1F71] text-white text-[10px] font-bold tracking-tight">VISA</span>
+                                    <span class="px-2 py-0.5 rounded bg-[#EB001B] text-white text-[10px] font-bold tracking-tight">MC</span>
+                                    <span class="px-2 py-0.5 rounded bg-[#B11116] text-white text-[10px] font-bold tracking-tight">BPI</span>
+                                    <span class="px-2 py-0.5 rounded bg-[#003A70] text-white text-[10px] font-bold tracking-tight">BDO</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="text-xs text-brand-muted mt-1">
+                            @if($onlinePayment)
+                                Pay with GCash, Maya, GrabPay, QR Ph, Visa/Mastercard, or Online Banking on PayMongo checkout.
                             @else
                                 Online payment is currently unavailable.
                             @endif

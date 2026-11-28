@@ -3,7 +3,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div class="sm:col-span-2 lg:col-span-1">
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-lg bg-brand-gold text-brand-darkgreen flex items-center justify-center font-serif font-bold text-lg">P</span>
+                    <span class="w-8 h-8 rounded-lg bg-brand-gold text-brand-darkgreen flex items-center justify-center font-serif font-bold text-lg">L</span>
                     <span class="font-serif text-xl font-bold text-white">LEBR<span class="text-brand-gold">On</span></span>
                 </a>
                 <p class="mt-3 text-sm text-white/70 leading-relaxed">
@@ -39,7 +39,7 @@
             <div>
                 <h3 class="text-xs font-bold uppercase tracking-wider text-brand-gold mb-4">Support</h3>
                 <ul class="space-y-2.5 text-sm text-white/75">
-                    <li>support@pageturner.com</li>
+                    <li>support@lebron.com</li>
                     <li>(123) 456-7890</li>
                     <li class="text-white/60 text-xs pt-1">Mon–Sat, 9:00 AM – 6:00 PM</li>
                 </ul>

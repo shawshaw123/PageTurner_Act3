@@ -19,7 +19,7 @@
             <div class="flex items-center gap-6 min-w-0">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 shrink-0 group">
                     <span class="w-8 h-8 rounded-lg bg-brand-gold text-brand-darkgreen flex items-center justify-center font-serif font-bold text-lg shadow-xs">
-                        P
+                        L
                     </span>
                     <span class="font-serif text-xl font-bold tracking-tight">
                         <span class="text-white">LEBR</span><span class="text-brand-gold">On</span>

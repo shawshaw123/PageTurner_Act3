@@ -90,6 +90,10 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
+        if ($request->boolean('buy_now')) {
+            return redirect()->route('cart.checkout');
+        }
+
         return redirect()->route('cart.index')->with('success', '"' . $book->title . '" added to cart!');
     }
 
