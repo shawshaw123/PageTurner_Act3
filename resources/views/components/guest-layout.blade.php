@@ -43,7 +43,7 @@
     <div class="w-full max-w-md mx-auto">
         <div class="text-center mb-6">
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 group">
-                <span class="w-10 h-10 rounded-xl bg-brand-darkgreen text-brand-gold flex items-center justify-center font-serif font-bold text-xl shadow-sm">P</span>
+                <span class="w-10 h-10 rounded-xl bg-brand-darkgreen text-brand-gold flex items-center justify-center font-serif font-bold text-xl shadow-sm">L</span>
                 <span class="font-serif text-3xl font-bold tracking-tight text-brand-darkgreen">
                     LEBR<span class="text-brand-amber">On</span>
                 </span>

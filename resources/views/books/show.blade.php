@@ -127,9 +127,9 @@
                                     </button>
                                 </form>
 
-                                <form action="{{ route('orders.store') }}" method="POST">
+                                <form action="{{ route('cart.add', $book) }}" method="POST">
                                     @csrf
-                                    <input type="hidden" name="book_id" value="{{ $book->id }}">
+                                    <input type="hidden" name="buy_now" value="1">
                                     <input type="hidden" name="quantity" id="quantity" value="1">
                                     <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border-2 border-brand-darkgreen text-brand-darkgreen bg-white font-semibold text-sm hover:bg-brand-cream transition-colors">
                                         Buy Now

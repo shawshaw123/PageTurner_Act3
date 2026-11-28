@@ -81,7 +81,7 @@
                 <div>123 Book Street</div>
                 <div>Literary City, LC 12345</div>
                 <div>Phone: (555) 123-4567</div>
-                <div>Email: info@pageturner.com</div>
+                <div>Email: info@LEBROn.com</div>
             </div>
             <div class="column">
                 <div class="invoice-info">
