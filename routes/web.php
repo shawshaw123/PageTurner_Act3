@@ -177,6 +177,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/orders/{order}/pay', [\App\Integrations\PayMongo\PaymentController::class, 'pay'])->name('orders.pay');
     Route::get('/payments/{reference}/return', [\App\Integrations\PayMongo\PaymentController::class, 'return'])->name('payments.return');
     Route::get('/payments/{reference}/cancelled', [\App\Integrations\PayMongo\PaymentController::class, 'cancelled'])->name('payments.cancelled');
+    Route::get('/payments/{reference}/demo', [\App\Integrations\PayMongo\PaymentController::class, 'demo'])->name('payments.demo');
+    Route::post('/payments/{reference}/demo', [\App\Integrations\PayMongo\PaymentController::class, 'demoComplete'])->name('payments.demo.complete');
 });
 
 // REST API token management
@@ -258,6 +260,11 @@ Route::middleware(['auth', 'admin', 'verified'])->group(function () {
     Route::get('/admin/sellers', [\App\Http\Controllers\Admin\SellerController::class, 'index'])->name('admin.sellers.index');
     Route::post('/admin/sellers/{seller}/approve', [\App\Http\Controllers\Admin\SellerController::class, 'approve'])->name('admin.sellers.approve');
     Route::post('/admin/sellers/{seller}/suspend', [\App\Http\Controllers\Admin\SellerController::class, 'suspend'])->name('admin.sellers.suspend');
+
+    // PayMongo Payments Dashboard
+    Route::get('/admin/paymongo', [\App\Http\Controllers\Admin\PayMongoDashboardController::class, 'index'])->name('admin.paymongo.index');
+    Route::post('/admin/paymongo/{payment}/sync', [\App\Http\Controllers\Admin\PayMongoDashboardController::class, 'sync'])->name('admin.paymongo.sync');
+    Route::post('/admin/paymongo/{payment}/expire', [\App\Http\Controllers\Admin\PayMongoDashboardController::class, 'expire'])->name('admin.paymongo.expire');
 
     // Lab 6 - Data Management Routes
     Route::prefix('admin')->group(function () {

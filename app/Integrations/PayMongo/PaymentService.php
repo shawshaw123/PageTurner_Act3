@@ -26,9 +26,14 @@ use Illuminate\Support\Facades\Notification;
  */
 class PaymentService
 {
+    public function isDemoMode(): bool
+    {
+        return (bool) config('services.paymongo.demo_mode') && !app()->isProduction() && !filled(config('services.paymongo.secret_key'));
+    }
+
     public function isConfigured(): bool
     {
-        return filled(config('services.paymongo.secret_key'));
+        return filled(config('services.paymongo.secret_key')) || $this->isDemoMode();
     }
 
     /**
@@ -56,6 +61,16 @@ class PaymentService
             'currency' => 'PHP',
             'status' => Payment::PENDING,
         ]);
+
+        if ($this->isDemoMode()) {
+            $payment->update([
+                'checkout_session_id' => 'cs_demo_' . \Illuminate\Support\Str::random(16),
+                'payment_intent_id' => 'pi_demo_' . \Illuminate\Support\Str::random(16),
+                'checkout_url' => route('payments.demo', $reference),
+            ]);
+
+            return $payment;
+        }
 
         $lineItems = $orders->flatMap(fn (Order $order) => $order->orderItems->map(fn ($item) => [
             'name' => mb_strimwidth($item->book?->title ?? 'Book', 0, 100, '…'),
@@ -102,7 +117,7 @@ class PaymentService
      */
     public function syncFromProvider(Payment $payment): Payment
     {
-        if (!$payment->isOpen() || !$payment->checkout_session_id || !$this->isConfigured()) {
+        if (!$payment->isOpen() || !$payment->checkout_session_id || !$this->isConfigured() || $this->isDemoMode()) {
             return $payment;
         }
 
@@ -193,7 +208,7 @@ class PaymentService
             return false;
         }
 
-        if ($payment->checkout_session_id && $this->isConfigured()) {
+        if ($payment->checkout_session_id && $this->isConfigured() && !$this->isDemoMode()) {
             $response = $this->send(fn (PendingRequest $http) => $http->post("/checkout_sessions/{$payment->checkout_session_id}/expire"));
 
             if ($response->status() === 400) {

@@ -67,6 +67,7 @@
                                     <a href="{{ route('categories.create') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-sm hover:bg-brand-cream transition-colors">Add Category</a>
                                     <a href="{{ route('admin.sellers.index') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-sm hover:bg-brand-cream transition-colors">Seller Approvals</a>
                                     <a href="{{ route('orders.statistics') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-sm hover:bg-brand-cream transition-colors">Order Statistics</a>
+                                    <a href="{{ route('admin.paymongo.index') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-sm hover:bg-brand-cream transition-colors">PayMongo Payments</a>
 
                                     <div class="my-1.5 border-t border-brand-border"></div>
                                     <div class="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand-muted">Operations & Monitoring</div>
@@ -242,6 +243,7 @@
                     <a href="{{ route('books.create') }}" class="{{ $mobileLink(request()->routeIs('books.create')) }}">Add Book</a>
                     <a href="{{ route('categories.create') }}" class="{{ $mobileLink(request()->routeIs('categories.create')) }}">Add Category</a>
                     <a href="{{ route('admin.sellers.index') }}" class="{{ $mobileLink(request()->routeIs('admin.sellers.*')) }}">Seller Approvals</a>
+                    <a href="{{ route('admin.paymongo.index') }}" class="{{ $mobileLink(request()->routeIs('admin.paymongo.*')) }}">PayMongo Payments</a>
                     <a href="{{ route('admin.import-export.index') }}" class="{{ $mobileLink(request()->routeIs('admin.import-export.*', 'admin.import.*', 'admin.export.*')) }}">Import & Export</a>
                     <a href="{{ route('admin.backup.index') }}" class="{{ $mobileLink(request()->routeIs('admin.backup.*')) }}">Database Backups</a>
                     <a href="{{ route('admin.audit.index') }}" class="{{ $mobileLink(request()->routeIs('admin.audit.*')) }}">Audit Logs</a>
